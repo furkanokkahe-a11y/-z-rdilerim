@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Özür Dilerim</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fff6f3;
+      --bg-soft: #f0d7d0;
+      --panel: rgba(255, 251, 248, 0.84);
+      --ink: #301e23;
+      --muted: #7b6368;
+      --accent: #b55468;
+      --shadow: 0 30px 90px rgba(110, 59, 68, 0.18);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Manrope", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,0.96), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(204,114,133,0.16), transparent 34%),
+        linear-gradient(135deg, var(--bg) 0%, var(--bg-soft) 100%);
+      padding: 24px;
+    }
+
+    .page {
+      width: min(800px, 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: 20px;
+    }
+
+    /* hero */
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 44px 36px;
+      border-radius: 34px;
+      color: #fff8fb;
+      background: linear-gradient(145deg, rgba(68,26,36,0.98) 0%, rgba(157,86,99,0.9) 58%, rgba(233,176,161,0.84) 110%);
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -40px; bottom: -70px;
+      width: 240px; height: 240px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.16);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .hero-tag::before {
+      content: "";
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #ffd9df;
+    }
+
+    h1 {
+      margin: 20px 0 10px;
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(44px, 7vw, 78px);
+      line-height: 0.94;
+      letter-spacing: -0.05em;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero p {
+      margin: 0;
+      line-height: 1.8;
+      color: rgba(255,248,251,0.82);
+      font-size: 14px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-hearts {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .hero > *:not(.hero-hearts) {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* apology list card */
+    .apology-card {
+      padding: 36px 32px;
+      border-radius: 32px;
+      background: var(--panel);
+      box-shadow: 0 18px 42px rgba(110,59,68,0.1);
+      backdrop-filter: blur(18px);
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .apology-intro {
+      font-size: 15px;
+      color: var(--muted);
+      line-height: 1.75;
+      margin: 0 0 28px;
+    }
+
+    .apology-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .apology-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(181,84,104,0.1);
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .apology-item:last-child {
+      border-bottom: none;
+    }
+
+    .apology-item.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .apology-num {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #b55468, #d9878b);
+      color: #fff8fb;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+    }
+
+    .apology-text {
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--ink);
+    }
+
+    .apology-text strong {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* continue button */
+    .continue-row {
+      display: flex;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+    }
+
+    .continue-row.visible {
+      opacity: 1;
+    }
+
+    .continue-button {
+      border: 0;
+      border-radius: 999px;
+      padding: 16px 28px;
+      min-width: 220px;
+      background: linear-gradient(135deg, #b55468 0%, #d9878b 100%);
+      color: #fff8fb;
+      font: inherit;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      box-shadow: 0 16px 32px rgba(181,84,104,0.28);
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .continue-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 22px 40px rgba(181,84,104,0.32);
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 14px; }
+      .hero, .apology-card { padding: 22px 18px; }
+    }
+
+    /* floating hearts */
+    #hearts-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .hrt {
+      position: absolute;
+      bottom: -50px;
+      opacity: 0;
+      animation: floatHeart linear infinite;
+      user-select: none;
+      line-height: 1;
+    }
+
+    @keyframes floatHeart {
+      0%   { transform: translateY(0)      rotate(-12deg); opacity: 0;    }
+      8%   {                                                opacity: 0.48; }
+      88%  {                                                opacity: 0.2;  }
+      100% { transform: translateY(-108vh) rotate(12deg);  opacity: 0;    }
+    }
+
+    main { position: relative; z-index: 1; }
+  </style>
+</head>
+<body>
+  <audio id="bg-music" loop preload="auto" src="assets/audio/arka-plan.mp3"></audio>
+  <div id="hearts-canvas" aria-hidden="true"></div>
+
+  <main class="page">
+    <section class="hero">
+      <div class="hero-hearts" aria-hidden="true"></div>
+      <div class="hero-tag">Özürlerim</div>
+      <h1>Senden özür dilerim.</h1>
+      <p>Bunları söylemem gerekiyordu. Hepsi içtenlikle.</p>
+    </section>
+
+    <section class="apology-card">
+      <p class="apology-intro">
+        Bazen kelimeler yetmiyor ama yine de söylemek zorundayım.
+        Her biri gerçek, her biri yürekten.
+      </p>
+      <ul class="apology-list" id="apology-list">
+        <li class="apology-item">
+          <span class="apology-num">1</span>
+          <span class="apology-text"><strong>Seni yalnız hissettirdiğim</strong> her an için özür dilerim.</span>
+        </li>
+        <li class="apology-item">
+          <span class="apology-num">2</span>
+          <span class="apology-text"><strong>Kalbini kırdığım</strong> zamanlarda daha iyi davranmam gerekirdi.</span>
+        </li>
+        <li class="apology-item">
+          <span class="apology-num">3</span>
+          <span class="apology-text">Söylemem gereken <strong>şeyleri söyleyemediğim</strong> için özür dilerim.</span>
+        </li>
+        <li class="apology-item">
+          <span class="apology-num">4</span>
+          <span class="apology-text"><strong>Seni yeterince anlayamadığım</strong> anlarda yanında olamadım.</span>
+        </li>
+        <li class="apology-item">
+          <span class="apology-num">5</span>
+          <span class="apology-text">Bazen <strong>önce konuşup sonra düşündüm</strong> — bunun için özür dilerim.</span>
+        </li>
+        <li class="apology-item">
+          <span class="apology-num">6</span>
+          <span class="apology-text"><strong>Seni küçük hissettiren</strong> tek bir anım bile olsaydı, onun için.</span>
+        </li>
+        <li class="apology-item">
+          <span class="apology-num">7</span>
+          <span class="apology-text">Seninle geçirdiğim zamanı <strong>yeterince değerlendirmediğim</strong> için.</span>
+        </li>
+        <li class="apology-item">
+          <span class="apology-num">8</span>
+          <span class="apology-text"><strong>Gurur yüzünden</strong> geri adım atmam gerekirken atmadığım anlar için.</span>
+        </li>
+        <li class="apology-item">
+          <span class="apology-num">9</span>
+          <span class="apology-text">Seni <strong>ne kadar çok sevdiğimi</strong> yeterince gösteremediğim için özür dilerim.</span>
+        </li>
+        <li class="apology-item">
+          <span class="apology-num">10</span>
+          <span class="apology-text">Ve her şeye rağmen <strong>hâlâ burada olmak</strong> istediğim için — umarım anlarsın.</span>
+        </li>
+      </ul>
+    </section>
+
+    <div class="continue-row" id="continue-row">
+      <button class="continue-button" id="continue-button" type="button">Devam et →</button>
+    </div>
+  </main>
+
+  <script src="assets/tracker.js"></script>
+  <script>
+    const STORAGE_KEY       = "tanisma-girisi-izin";
+    const MUSIC_TIME_KEY    = "site-music-time";
+    const MUSIC_ALLOWED_KEY = "site-music-allowed";
+    const bgMusic = document.getElementById("bg-music");
+
+    if (localStorage.getItem(STORAGE_KEY) !== "ok") {
+      window.location.href = "index.html";
+    }
+
+    // Music
+    function setupBackgroundMusic() {
+      const savedTime = Number(sessionStorage.getItem(MUSIC_TIME_KEY) || "0");
+      bgMusic.volume = 0.4;
+      bgMusic.addEventListener("loadedmetadata", () => {
+        if (savedTime > 0 && savedTime < bgMusic.duration) bgMusic.currentTime = savedTime;
+      });
+      const storeMusicTime = () => sessionStorage.setItem(MUSIC_TIME_KEY, String(bgMusic.currentTime || 0));
+      const tryPlayMusic   = () => bgMusic.play().then(() => localStorage.setItem(MUSIC_ALLOWED_KEY, "yes")).catch(() => {});
+      bgMusic.addEventListener("timeupdate", storeMusicTime);
+      window.addEventListener("beforeunload", storeMusicTime);
+      ["click","change","keydown","touchstart"].forEach(e => window.addEventListener(e, tryPlayMusic, { once: true }));
+      if (localStorage.getItem(MUSIC_ALLOWED_KEY) === "yes") tryPlayMusic();
+      window.addEventListener("load", tryPlayMusic, { once: true });
+    }
+    setupBackgroundMusic();
+
+    // Telegram tracking
+    if (typeof telegramLog === "function") {
+      telegramLog("🙏 Özür sayfasını açtı");
+    }
+
+    // Animate items one by one
+    var items = Array.from(document.querySelectorAll(".apology-item"));
+    var continueRow = document.getElementById("continue-row");
+    var continueBtn = document.getElementById("continue-button");
+
+    function revealItems() {
+      items.forEach(function(item, i) {
+        setTimeout(function() {
+          item.classList.add("visible");
+          if (i === items.length - 1) {
+            setTimeout(function() {
+              continueRow.classList.add("visible");
+            }, 400);
+          }
+        }, 250 + i * 180);
+      });
+    }
+
+    // Start animation after short delay
+    setTimeout(revealItems, 300);
+
+    continueBtn.addEventListener("click", function() {
+      sessionStorage.setItem(MUSIC_TIME_KEY, String(bgMusic.currentTime || 0));
+      window.location.href = "kapanis.html";
+    });
+
+    // hero hearts
+    (function() {
+      document.querySelectorAll(".hero-hearts").forEach(function(c) {
+        var col = ["rgba(255,220,225,0.55)","rgba(255,200,210,0.45)","rgba(255,240,244,0.5)","rgba(255,180,195,0.4)"];
+        var sz  = [10,14,18,12,16,9,20];
+        for (var i = 0; i < 16; i++) {
+          var s = document.createElement("span");
+          s.className = "hrt";
+          s.textContent = "\u2665";
+          s.style.left              = (Math.random() * 100) + "%";
+          s.style.fontSize          = sz[i % sz.length] + "px";
+          s.style.color             = col[i % col.length];
+          s.style.animationDuration = (7 + Math.random() * 10) + "s";
+          s.style.animationDelay    = (Math.random() * 12) + "s";
+          c.appendChild(s);
+        }
+      });
+    }());
+
+    // floating hearts
+    (function() {
+      var c   = document.getElementById("hearts-canvas");
+      var col = ["rgba(204,114,133,0.18)","rgba(220,140,155,0.14)","rgba(240,170,180,0.12)"];
+      var sz  = [12,16,20,14,18];
+      for (var i = 0; i < 14; i++) {
+        var s = document.createElement("span");
+        s.className = "hrt";
+        s.textContent = "\u2665";
+        s.style.left              = (Math.random() * 100) + "%";
+        s.style.fontSize          = sz[i % sz.length] + "px";
+        s.style.color             = col[i % col.length];
+        s.style.animationDuration = (12 + Math.random() * 14) + "s";
+        s.style.animationDelay    = (Math.random() * 18) + "s";
+        c.appendChild(s);
+      }
+    }());
+  </script>
+</body>
+</html>

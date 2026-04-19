@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bir Sorum Var</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fff6f3;
+      --bg-soft: #f0d7d0;
+      --panel: rgba(255, 251, 248, 0.84);
+      --ink: #301e23;
+      --muted: #7b6368;
+      --shadow: 0 30px 90px rgba(110, 59, 68, 0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Manrope", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.96), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(204, 114, 133, 0.16), transparent 34%),
+        linear-gradient(135deg, var(--bg) 0%, var(--bg-soft) 100%);
+      padding: 24px;
+      display: grid;
+      place-items: center;
+    }
+
+    .page {
+      width: min(700px, 100%);
+      display: grid;
+      gap: 20px;
+    }
+
+    /* ── hero ── */
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 44px 36px;
+      border-radius: 34px;
+      color: #fff8fb;
+      background: linear-gradient(145deg, rgba(68, 26, 36, 0.98) 0%, rgba(157, 86, 99, 0.9) 58%, rgba(233, 176, 161, 0.84) 110%);
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -40px;
+      bottom: -70px;
+      width: 240px;
+      height: 240px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .hero-tag::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ffd9df;
+    }
+
+    h1 {
+      margin: 20px 0 10px;
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(38px, 6vw, 64px);
+      line-height: 1.08;
+      letter-spacing: -0.05em;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero p {
+      margin: 0;
+      line-height: 1.8;
+      color: rgba(255, 248, 251, 0.82);
+      font-size: 14px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── choices card ── */
+    .choices-card {
+      padding: 32px 28px;
+      border-radius: 32px;
+      background: var(--panel);
+      box-shadow: 0 18px 42px rgba(110, 59, 68, 0.1);
+      backdrop-filter: blur(18px);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .choice-btn {
+      border: 2px solid rgba(181, 84, 104, 0.22);
+      border-radius: 999px;
+      padding: 16px 24px;
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--ink);
+      font: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.18s, background 0.18s, border-color 0.18s, box-shadow 0.18s;
+      text-align: center;
+    }
+
+    .choice-btn:hover {
+      background: linear-gradient(135deg, #b55468 0%, #d9878b 100%);
+      border-color: transparent;
+      color: #fff8fb;
+      transform: translateY(-2px);
+      box-shadow: 0 16px 32px rgba(181, 84, 104, 0.24);
+    }
+
+    /* kaçan hayır */
+    #btn-hayir {
+      transition: none;
+      position: fixed;
+      z-index: 500;
+      pointer-events: auto;
+    }
+
+    /* konfeti canvas */
+    #confetti-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    /* ── final message ── */
+    .final-card {
+      display: none;
+      padding: 36px 30px;
+      border-radius: 32px;
+      background: linear-gradient(145deg, rgba(68, 26, 36, 0.97) 0%, rgba(157, 86, 99, 0.88) 60%, rgba(233, 176, 161, 0.82) 110%);
+      box-shadow: var(--shadow);
+      text-align: center;
+      color: #fff8fb;
+    }
+
+    .final-card.show {
+      display: block;
+      animation: riseIn 0.5s ease;
+    }
+
+    .final-card p {
+      margin: 0;
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(26px, 5vw, 44px);
+      line-height: 1.4;
+      letter-spacing: -0.02em;
+    }
+
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0);    }
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 14px; }
+      .hero, .choices-card { padding: 22px 18px; }
+    }
+
+    /* ── reply card ── */
+    .reply-card {
+      display: none;
+      padding: 28px 26px;
+      border-radius: 32px;
+      background: var(--panel);
+      box-shadow: 0 18px 42px rgba(110, 59, 68, 0.1);
+      backdrop-filter: blur(18px);
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .reply-card.show {
+      display: flex;
+      animation: riseIn 0.5s ease;
+    }
+
+    .reply-card .prompt {
+      margin: 0;
+      font-size: 15px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .reply-textarea {
+      width: 100%;
+      min-height: 120px;
+      border-radius: 18px;
+      border: 1.5px solid rgba(181, 84, 104, 0.22);
+      background: rgba(255, 255, 255, 0.72);
+      padding: 14px 16px;
+      font: inherit;
+      font-size: 15px;
+      color: var(--ink);
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.18s;
+    }
+
+    .reply-textarea:focus {
+      border-color: rgba(181, 84, 104, 0.5);
+    }
+
+    .send-btn {
+      align-self: flex-end;
+      border: 0;
+      border-radius: 999px;
+      padding: 13px 28px;
+      background: linear-gradient(135deg, #b55468 0%, #d9878b 100%);
+      color: #fff8fb;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 12px 28px rgba(181, 84, 104, 0.24);
+      transition: transform 0.18s, box-shadow 0.18s;
+    }
+
+    .send-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 34px rgba(181, 84, 104, 0.28);
+    }
+
+    .sent-confirm {
+      display: none;
+      text-align: center;
+      font-size: 17px;
+      font-weight: 600;
+      color: #b55468;
+    }
+
+    .sent-confirm.show {
+      display: block;
+      animation: riseIn 0.4s ease;
+    }
+
+    /* ── floating hearts ── */
+    #hearts-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .hrt {
+      position: absolute;
+      bottom: -50px;
+      opacity: 0;
+      animation: floatHeart linear infinite;
+      user-select: none;
+      line-height: 1;
+    }
+
+    @keyframes floatHeart {
+      0%   { transform: translateY(0)      rotate(-12deg); opacity: 0;    }
+      8%   {                                                opacity: 0.48; }
+      88%  {                                                opacity: 0.2;  }
+      100% { transform: translateY(-108vh) rotate(12deg);  opacity: 0;    }
+    }
+
+    main { position: relative; z-index: 1; }
+
+    .hero-hearts {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .hero > *:not(.hero-hearts) {
+      position: relative;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+  <audio id="bg-music" loop preload="auto" src="assets/audio/arka-plan.mp3"></audio>
+  <div id="hearts-canvas" aria-hidden="true"></div>
+  <canvas id="confetti-canvas" aria-hidden="true"></canvas>
+
+  <main class="page">
+    <section class="hero">
+      <div class="hero-hearts" aria-hidden="true"></div>
+      <div class="hero-tag">Sana bir sorum var</div>
+      <h1>Bana karşı en ufak umudun varsa deneyelim mi güzelim?</h1>
+      <p>Dürüst olmak istiyorum, dürüst ol bana da.</p>
+    </section>
+
+    <section class="choices-card" id="choices-card">
+      <button class="choice-btn" type="button" data-choice="evet">Evet</button>
+      <button class="choice-btn" id="btn-hayir" type="button" data-choice="hayir">Hayır</button>
+      <button class="choice-btn" type="button" data-choice="belki">Belki</button>
+    </section>
+
+    <section class="final-card" id="final-card">
+      <p>Ne olursa olsun seni ölene kadar seveceğim. ♥</p>
+    </section>
+
+    <section class="reply-card" id="reply-card">
+      <p class="prompt">Cevabın varsa buraya yazabilirsin ♥</p>
+      <p style="font-size:11px; color: rgba(180,80,100,0.7); margin: -8px 0 12px; font-style: italic;">en ufak umudun, isteğin varsa bana yazar mısın?</p>
+      <textarea class="reply-textarea" id="reply-text" placeholder="Bir şeyler yaz..."></textarea>
+      <div class="sent-confirm" id="sent-confirm">Mesajın iletildi ♥</div>
+      <button class="send-btn" id="send-btn" type="button">Gönder</button>
+    </section>
+  </main>
+
+  <script src="assets/tracker.js"></script>
+  <script>
+    const STORAGE_KEY    = "tanisma-girisi-izin";
+    const MUSIC_TIME_KEY = "site-music-time";
+    const MUSIC_ALLOWED_KEY = "site-music-allowed";
+    const bgMusic     = document.getElementById("bg-music");
+    const choicesCard  = document.getElementById("choices-card");
+    const finalCard    = document.getElementById("final-card");
+    const replyCard    = document.getElementById("reply-card");
+    const replyText    = document.getElementById("reply-text");
+    const sendBtn      = document.getElementById("send-btn");
+    const sentConfirm  = document.getElementById("sent-confirm");
+
+    if (localStorage.getItem(STORAGE_KEY) !== "ok") {
+      window.location.href = "index.html";
+    }
+
+    // Kaçan Hayır butonu - sayfa geneli, hiç basılamaz
+    var hayirBtn = document.getElementById("btn-hayir");
+
+    // Başlangıç pozisyonunu ayarla
+    (function() {
+      var r = hayirBtn.getBoundingClientRect();
+      hayirBtn.style.left = r.left + "px";
+      hayirBtn.style.top  = r.top  + "px";
+      hayirBtn.style.width = r.width + "px";
+    })();
+
+    function escapeHayir() {
+      var btnW = hayirBtn.offsetWidth  || 160;
+      var btnH = hayirBtn.offsetHeight || 52;
+      var maxX = window.innerWidth  - btnW  - 12;
+      var maxY = window.innerHeight - btnH  - 12;
+      var rx = 12 + Math.random() * maxX;
+      var ry = 12 + Math.random() * maxY;
+      hayirBtn.style.left = rx + "px";
+      hayirBtn.style.top  = ry + "px";
+    }
+
+    // Fare yaklaşınca kaç (mousemove ile mesafe ölç)
+    document.addEventListener("mousemove", function(e) {
+      var r = hayirBtn.getBoundingClientRect();
+      var cx = r.left + r.width  / 2;
+      var cy = r.top  + r.height / 2;
+      var dist = Math.sqrt(Math.pow(e.clientX - cx, 2) + Math.pow(e.clientY - cy, 2));
+      if (dist < 120) escapeHayir();
+    });
+
+    // Touch cihazlarda: butonun üzerine dokunulunca ışınlan
+    hayirBtn.addEventListener("touchstart", function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      escapeHayir();
+    }, { passive: false });
+
+    hayirBtn.addEventListener("touchend", function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }, { passive: false });
+
+    // Sayfada herhangi bir dokunuşta yakınsa kaç
+    document.addEventListener("touchstart", function(e) {
+      var touch = e.touches[0];
+      if (!touch) return;
+      var r = hayirBtn.getBoundingClientRect();
+      var cx = r.left + r.width  / 2;
+      var cy = r.top  + r.height / 2;
+      var dist = Math.sqrt(Math.pow(touch.clientX - cx, 2) + Math.pow(touch.clientY - cy, 2));
+      if (dist < 160) escapeHayir();
+    }, { passive: true });
+
+    // Tıklansa bile hiçbir şey yapma
+    hayirBtn.addEventListener("click", function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      escapeHayir();
+    });
+
+    // Konfeti fonksiyonu
+    function launchConfetti() {
+      var canvas = document.getElementById("confetti-canvas");
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+      var ctx = canvas.getContext("2d");
+      var pieces = [];
+      var colors = ["#b55468","#d9878b","#f7c5cc","#fff0f3","#e8a0b0","#ff6b8a"];
+      for (var i = 0; i < 160; i++) {
+        pieces.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height - canvas.height,
+          r: 4 + Math.random() * 6,
+          d: 1 + Math.random() * 3,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          tilt: Math.random() * 20 - 10,
+          tiltSpeed: 0.1 + Math.random() * 0.3,
+          angle: Math.random() * Math.PI * 2
+        });
+      }
+      var frame = 0;
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(function(p) {
+          ctx.beginPath();
+          ctx.ellipse(p.x, p.y, p.r, p.r * 0.5, p.tilt * Math.PI / 180, 0, Math.PI * 2);
+          ctx.fillStyle = p.color;
+          ctx.fill();
+          p.y      += p.d + Math.sin(p.angle) * 0.8;
+          p.angle  += 0.04;
+          p.tilt   += p.tiltSpeed;
+          p.x      += Math.sin(p.angle) * 1.2;
+          if (p.y > canvas.height) p.y = -10;
+        });
+        frame++;
+        if (frame < 280) requestAnimationFrame(draw);
+        else ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      draw();
+    }
+
+    choicesCard.querySelectorAll(".choice-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (btn.dataset.choice === "hayir") {
+          // Kaçan butona tıklarsa şimdi artık 5 kaçıştan sonra tıklayabilir
+          telegramLog("💬 Şık seçti: <b>" + btn.textContent.trim() + "</b>");
+        } else if (btn.dataset.choice === "evet") {
+          telegramLog("💕 Şık seçti: <b>Evet</b>");
+          launchConfetti();
+        } else if (btn.dataset.choice === "belki") {
+          telegramLog("💬 Şık seçti: <b>Belki</b>");
+          launchConfetti();
+        } else {
+          telegramLog("💬 Şık seçti: <b>" + btn.textContent.trim() + "</b>");
+        }
+        choicesCard.style.display = "none";
+        finalCard.classList.add("show");
+        replyCard.classList.add("show");
+      });
+    });
+
+    sendBtn.addEventListener("click", () => {
+      var metin = replyText.value.trim();
+      if (!metin) return;
+      telegramLog("📝 Mesaj gönderdi:\n" + metin);
+      replyText.style.display = "none";
+      sendBtn.style.display = "none";
+      sentConfirm.classList.add("show");
+    });
+
+    function setupBackgroundMusic() {
+      const savedTime = Number(sessionStorage.getItem(MUSIC_TIME_KEY) || "0");
+      bgMusic.volume = 0.4;
+
+      bgMusic.addEventListener("loadedmetadata", () => {
+        if (savedTime > 0 && savedTime < bgMusic.duration) {
+          bgMusic.currentTime = savedTime;
+        }
+      });
+
+      const storeMusicTime = () => sessionStorage.setItem(MUSIC_TIME_KEY, String(bgMusic.currentTime || 0));
+      const tryPlayMusic   = () => bgMusic.play().then(() => localStorage.setItem(MUSIC_ALLOWED_KEY, "yes")).catch(() => {});
+
+      bgMusic.addEventListener("timeupdate", storeMusicTime);
+      window.addEventListener("beforeunload", storeMusicTime);
+      ["click","change","keydown","touchstart"].forEach((e) => window.addEventListener(e, tryPlayMusic, { once: true }));
+      if (localStorage.getItem(MUSIC_ALLOWED_KEY) === "yes") tryPlayMusic();
+      window.addEventListener("load", tryPlayMusic, { once: true });
+    }
+
+    setupBackgroundMusic();
+
+    // hero hearts
+    (function () {
+      document.querySelectorAll(".hero-hearts").forEach(function (c) {
+        var col = ["rgba(255,220,225,0.55)","rgba(255,200,210,0.45)","rgba(255,240,244,0.5)","rgba(255,180,195,0.4)"];
+        var sz  = [10, 14, 18, 12, 16, 9, 20];
+        for (var i = 0; i < 16; i++) {
+          var s = document.createElement("span");
+          s.className = "hrt";
+          s.textContent = "\u2665";
+          s.style.left              = (Math.random() * 100) + "%";
+          s.style.fontSize          = sz[i % sz.length] + "px";
+          s.style.color             = col[i % col.length];
+          s.style.animationDuration = (7 + Math.random() * 10) + "s";
+          s.style.animationDelay    = (Math.random() * 12) + "s";
+          c.appendChild(s);
+        }
+      });
+    }());
+
+    // hearts
+    (function () {
+      var c   = document.getElementById("hearts-canvas");
+      var col = ["#e07389","#d45e77","#f2a9b5","#c96a80","#f7c2cb","#ba4f68","#e89aaa"];
+      var sz  = [13, 17, 21, 26, 11, 16, 20, 24];
+      for (var i = 0; i < 22; i++) {
+        var s = document.createElement("span");
+        s.className = "hrt";
+        s.textContent = "\u2665";
+        s.style.left              = (Math.random() * 100) + "%";
+        s.style.fontSize          = sz[i % sz.length] + "px";
+        s.style.color             = col[i % col.length];
+        s.style.animationDuration = (9 + Math.random() * 12) + "s";
+        s.style.animationDelay    = (Math.random() * 15) + "s";
+        c.appendChild(s);
+      }
+    }());
+  </script>
+</body>
+</html>

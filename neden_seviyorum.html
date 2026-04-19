@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Neden Seviyorum</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fff6f3;
+      --bg-soft: #f0d7d0;
+      --panel: rgba(255,251,248,0.84);
+      --ink: #301e23;
+      --muted: #7b6368;
+      --accent: #b55468;
+      --shadow: 0 30px 90px rgba(110,59,68,0.18);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Manrope", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,0.96), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(204,114,133,0.16), transparent 34%),
+        linear-gradient(135deg, var(--bg) 0%, var(--bg-soft) 100%);
+      padding: 24px;
+    }
+
+    .page {
+      width: min(900px, 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: 20px;
+    }
+
+    /* hero */
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 44px 36px;
+      border-radius: 34px;
+      color: #fff8fb;
+      background: linear-gradient(145deg, rgba(68,26,36,0.98) 0%, rgba(157,86,99,0.9) 58%, rgba(233,176,161,0.84) 110%);
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -40px; bottom: -70px;
+      width: 240px; height: 240px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.16);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .hero-tag::before {
+      content: "";
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #ffd9df;
+    }
+
+    h1 {
+      margin: 20px 0 10px;
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(44px, 7vw, 78px);
+      line-height: 0.94;
+      letter-spacing: -0.05em;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero p {
+      margin: 0;
+      line-height: 1.8;
+      color: rgba(255,248,251,0.82);
+      font-size: 14px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-hearts {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .hero > *:not(.hero-hearts) {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* reasons grid */
+    .reasons-card {
+      padding: 36px 32px;
+      border-radius: 32px;
+      background: var(--panel);
+      box-shadow: 0 18px 42px rgba(110,59,68,0.1);
+      backdrop-filter: blur(18px);
+    }
+
+    .reasons-intro {
+      font-size: 15px;
+      color: var(--muted);
+      line-height: 1.75;
+      margin: 0 0 28px;
+    }
+
+    .reasons-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .reason-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 18px 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.72);
+      border: 1.5px solid rgba(181,84,104,0.12);
+      opacity: 0;
+      transform: translateY(14px) scale(0.97);
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+
+    .reason-item.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .reason-num {
+      flex-shrink: 0;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #b55468, #d9878b);
+      color: #fff8fb;
+      font-size: 10px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+    }
+
+    .reason-text {
+      font-size: 13.5px;
+      line-height: 1.65;
+      color: var(--ink);
+    }
+
+    /* continue */
+    .continue-row {
+      display: flex;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+    }
+
+    .continue-row.visible {
+      opacity: 1;
+    }
+
+    .continue-button {
+      border: 0;
+      border-radius: 999px;
+      padding: 16px 28px;
+      min-width: 220px;
+      background: linear-gradient(135deg, #b55468 0%, #d9878b 100%);
+      color: #fff8fb;
+      font: inherit;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      box-shadow: 0 16px 32px rgba(181,84,104,0.28);
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .continue-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 22px 40px rgba(181,84,104,0.32);
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 14px; }
+      .hero, .reasons-card { padding: 22px 18px; }
+      .reasons-grid { grid-template-columns: 1fr; }
+    }
+
+    /* floating hearts */
+    #hearts-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .hrt {
+      position: absolute;
+      bottom: -50px;
+      opacity: 0;
+      animation: floatHeart linear infinite;
+      user-select: none;
+      line-height: 1;
+    }
+
+    @keyframes floatHeart {
+      0%   { transform: translateY(0)      rotate(-12deg); opacity: 0;    }
+      8%   {                                                opacity: 0.48; }
+      88%  {                                                opacity: 0.2;  }
+      100% { transform: translateY(-108vh) rotate(12deg);  opacity: 0;    }
+    }
+
+    main { position: relative; z-index: 1; }
+  </style>
+</head>
+<body>
+  <audio id="bg-music" loop preload="auto" src="assets/audio/arka-plan.mp3"></audio>
+  <div id="hearts-canvas" aria-hidden="true"></div>
+
+  <main class="page">
+    <section class="hero">
+      <div class="hero-hearts" aria-hidden="true"></div>
+      <div class="hero-tag">Neden seviyorum</div>
+      <h1>Seni sevmemin 25 sebebi.</h1>
+      <p>Bunlar sadece bir kısmı. Liste bitmez.</p>
+    </section>
+
+    <section class="reasons-card">
+      <p class="reasons-intro">Her biri gerçek, hepsini düşünerek yazdım.</p>
+      <ul class="reasons-grid" id="reasons-grid">
+        <li class="reason-item"><span class="reason-num">1</span><span class="reason-text">Gülerken gözlerinin kıvılcımlanması.</span></li>
+        <li class="reason-item"><span class="reason-num">2</span><span class="reason-text">Dürüstlüğün — susmak yerine söylemeyi seçmen.</span></li>
+        <li class="reason-item"><span class="reason-num">3</span><span class="reason-text">Öfkeli olsan bile sevgi dolu bakışların.</span></li>
+        <li class="reason-item"><span class="reason-num">4</span><span class="reason-text">Beni düşündüğünde küçük ama anlamlı şeyler yapman.</span></li>
+        <li class="reason-item"><span class="reason-num">5</span><span class="reason-text">Yanında olmak neden bu kadar kolay hissettiriyor bilmiyorum.</span></li>
+        <li class="reason-item"><span class="reason-num">6</span><span class="reason-text">Güçlü durduğunda bile içindeki yumuşaklığı hissedebiliyorum.</span></li>
+        <li class="reason-item"><span class="reason-num">7</span><span class="reason-text">Sesinin benim için farklı tonlara geçmesi.</span></li>
+        <li class="reason-item"><span class="reason-num">8</span><span class="reason-text">Sevdiğin şeyleri anlatırken gözlerinin parlıyor olması.</span></li>
+        <li class="reason-item"><span class="reason-num">9</span><span class="reason-text">Zor anlarda bile yanımda durmayı seçmiştin.</span></li>
+        <li class="reason-item"><span class="reason-num">10</span><span class="reason-text">Küçük ayrıntılara verdiğin değer.</span></li>
+        <li class="reason-item"><span class="reason-num">11</span><span class="reason-text">Bana kızgın olsan bile bakışlarındaki sıcaklık.</span></li>
+        <li class="reason-item"><span class="reason-num">12</span><span class="reason-text">Düşüncelerini saklamadan paylaşman.</span></li>
+        <li class="reason-item"><span class="reason-num">13</span><span class="reason-text">Yanındayken zamanın nasıl geçtiğini anlamamam.</span></li>
+        <li class="reason-item"><span class="reason-num">14</span><span class="reason-text">Güçlü ve hassas aynı anda olabilmen.</span></li>
+        <li class="reason-item"><span class="reason-num">15</span><span class="reason-text">Seninle gülmek başka türlü geliyor.</span></li>
+        <li class="reason-item"><span class="reason-num">16</span><span class="reason-text">Hayal kurduğunda sesinin değişmesi.</span></li>
+        <li class="reason-item"><span class="reason-num">17</span><span class="reason-text">Bana güvendiğin anlar — o güven çok şey ifade ediyor.</span></li>
+        <li class="reason-item"><span class="reason-num">18</span><span class="reason-text">Her haliyle eksiksiz hissettirmen.</span></li>
+        <li class="reason-item"><span class="reason-num">19</span><span class="reason-text">İnatçılığın bile sana özgü bir şey.</span></li>
+        <li class="reason-item"><span class="reason-num">20</span><span class="reason-text">Önem verdiğin şeyler için mücadele etmen.</span></li>
+        <li class="reason-item"><span class="reason-num">21</span><span class="reason-text">Beni tanıyan gözlerle bakman.</span></li>
+        <li class="reason-item"><span class="reason-num">22</span><span class="reason-text">Her şeyiyle gerçek biri olman.</span></li>
+        <li class="reason-item"><span class="reason-num">23</span><span class="reason-text">Seninle geçen sıradan anların aslında hiç sıradan olmaması.</span></li>
+        <li class="reason-item"><span class="reason-num">24</span><span class="reason-text">İçimde bir yerde hep sen olduğun için.</span></li>
+        <li class="reason-item"><span class="reason-num">25</span><span class="reason-text">Çünkü sen Aybüşüm'sün. Her şeyimsin. ♥</span></li>
+      </ul>
+    </section>
+
+    <div class="continue-row" id="continue-row">
+      <button class="continue-button" id="continue-button" type="button">Son soruya geç →</button>
+    </div>
+  </main>
+
+  <script src="assets/tracker.js"></script>
+  <script>
+    const STORAGE_KEY       = "tanisma-girisi-izin";
+    const MUSIC_TIME_KEY    = "site-music-time";
+    const MUSIC_ALLOWED_KEY = "site-music-allowed";
+    const bgMusic = document.getElementById("bg-music");
+
+    if (localStorage.getItem(STORAGE_KEY) !== "ok") {
+      window.location.href = "index.html";
+    }
+
+    function setupBackgroundMusic() {
+      const savedTime = Number(sessionStorage.getItem(MUSIC_TIME_KEY) || "0");
+      bgMusic.volume = 0.4;
+      bgMusic.addEventListener("loadedmetadata", () => {
+        if (savedTime > 0 && savedTime < bgMusic.duration) bgMusic.currentTime = savedTime;
+      });
+      const storeMusicTime = () => sessionStorage.setItem(MUSIC_TIME_KEY, String(bgMusic.currentTime || 0));
+      const tryPlayMusic   = () => bgMusic.play().then(() => localStorage.setItem(MUSIC_ALLOWED_KEY, "yes")).catch(() => {});
+      bgMusic.addEventListener("timeupdate", storeMusicTime);
+      window.addEventListener("beforeunload", storeMusicTime);
+      ["click","change","keydown","touchstart"].forEach(e => window.addEventListener(e, tryPlayMusic, { once: true }));
+      if (localStorage.getItem(MUSIC_ALLOWED_KEY) === "yes") tryPlayMusic();
+      window.addEventListener("load", tryPlayMusic, { once: true });
+    }
+    setupBackgroundMusic();
+
+    if (typeof telegramLog === "function") {
+      telegramLog("💝 Neden Seviyorum sayfasını açtı");
+    }
+
+    var items = Array.from(document.querySelectorAll(".reason-item"));
+    var continueRow = document.getElementById("continue-row");
+    var continueBtn = document.getElementById("continue-button");
+
+    function revealItems() {
+      items.forEach(function(item, i) {
+        setTimeout(function() {
+          item.classList.add("visible");
+          if (i === items.length - 1) {
+            setTimeout(function() {
+              continueRow.classList.add("visible");
+            }, 400);
+          }
+        }, 120 + i * 100);
+      });
+    }
+
+    setTimeout(revealItems, 200);
+
+    continueBtn.addEventListener("click", function() {
+      sessionStorage.setItem(MUSIC_TIME_KEY, String(bgMusic.currentTime || 0));
+      window.location.href = "cevap.html";
+    });
+
+    // hero hearts
+    (function() {
+      document.querySelectorAll(".hero-hearts").forEach(function(c) {
+        var col = ["rgba(255,220,225,0.55)","rgba(255,200,210,0.45)","rgba(255,240,244,0.5)","rgba(255,180,195,0.4)"];
+        var sz  = [10,14,18,12,16,9,20];
+        for (var i = 0; i < 16; i++) {
+          var s = document.createElement("span");
+          s.className = "hrt";
+          s.textContent = "\u2665";
+          s.style.left              = (Math.random() * 100) + "%";
+          s.style.fontSize          = sz[i % sz.length] + "px";
+          s.style.color             = col[i % col.length];
+          s.style.animationDuration = (7 + Math.random() * 10) + "s";
+          s.style.animationDelay    = (Math.random() * 12) + "s";
+          c.appendChild(s);
+        }
+      });
+    }());
+
+    // floating hearts
+    (function() {
+      var c   = document.getElementById("hearts-canvas");
+      var col = ["rgba(204,114,133,0.18)","rgba(220,140,155,0.14)","rgba(240,170,180,0.12)"];
+      var sz  = [12,16,20,14,18];
+      for (var i = 0; i < 14; i++) {
+        var s = document.createElement("span");
+        s.className = "hrt";
+        s.textContent = "\u2665";
+        s.style.left              = (Math.random() * 100) + "%";
+        s.style.fontSize          = sz[i % sz.length] + "px";
+        s.style.color             = col[i % col.length];
+        s.style.animationDuration = (12 + Math.random() * 14) + "s";
+        s.style.animationDelay    = (Math.random() * 18) + "s";
+        c.appendChild(s);
+      }
+    }());
+  </script>
+</body>
+</html>

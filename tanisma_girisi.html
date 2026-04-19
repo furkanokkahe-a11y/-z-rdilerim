@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bizim Tarihimiz</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fff5f3;
+      --bg-soft: #f4d9d2;
+      --panel: rgba(255, 250, 248, 0.76);
+      --panel-strong: rgba(255, 255, 255, 0.9);
+      --ink: #2f1d22;
+      --muted: #83646a;
+      --line: rgba(90, 44, 57, 0.12);
+      --accent: #c76c83;
+      --accent-deep: #9f4f65;
+      --accent-soft: rgba(199, 108, 131, 0.12);
+      --success: #2f8f6b;
+      --danger: #ac4c55;
+      --shadow: 0 28px 80px rgba(122, 58, 75, 0.17);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Manrope", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.95), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(199, 108, 131, 0.16), transparent 32%),
+        linear-gradient(135deg, var(--bg) 0%, var(--bg-soft) 100%);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      border-radius: 999px;
+      filter: blur(12px);
+      pointer-events: none;
+    }
+
+    body::before {
+      width: 320px;
+      height: 320px;
+      top: -100px;
+      right: -60px;
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    body::after {
+      width: 240px;
+      height: 240px;
+      left: -40px;
+      bottom: -40px;
+      background: rgba(199, 108, 131, 0.18);
+    }
+
+    .shell {
+      width: min(820px, 100%);
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      border-radius: 34px;
+      overflow: hidden;
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(20px);
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero {
+      position: relative;
+      padding: 38px 34px;
+      color: #fff9fb;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.18), transparent 24%),
+        linear-gradient(160deg, rgba(74, 24, 44, 0.98) 0%, rgba(154, 76, 101, 0.9) 58%, rgba(226, 147, 171, 0.84) 110%);
+      isolation: isolate;
+    }
+
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      z-index: -1;
+    }
+
+    .hero::before {
+      width: 260px;
+      height: 260px;
+      top: -100px;
+      right: -70px;
+    }
+
+    .hero::after {
+      width: 230px;
+      height: 230px;
+      left: -50px;
+      bottom: -90px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.1);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .tag::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ffd7e1;
+      box-shadow: 0 0 0 8px rgba(255, 215, 225, 0.08);
+    }
+
+    h1 {
+      margin: 16px 0 12px;
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(36px, 5vw, 58px);
+      line-height: 0.92;
+      letter-spacing: -0.06em;
+      max-width: 8ch;
+    }
+
+    .hero-copy {
+      max-width: 500px;
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.7;
+      color: rgba(255, 249, 251, 0.84);
+    }
+
+    .auth-panel {
+      padding: 28px 26px;
+      background: rgba(255, 250, 248, 0.82);
+      display: flex;
+      align-items: center;
+    }
+
+    .flow-card {
+      width: 100%;
+      padding: 22px 20px;
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 248, 247, 0.84) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.65);
+      box-shadow: 0 18px 40px rgba(122, 58, 75, 0.08);
+    }
+
+    .step-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-weight: 700;
+    }
+
+    .step-label::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    h2 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      letter-spacing: -0.05em;
+    }
+
+    .lead {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+      max-width: 38ch;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .field {
+      margin-bottom: 10px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    select,
+    button {
+      width: 100%;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      font: inherit;
+    }
+
+    select {
+      appearance: none;
+      padding: 11px 14px;
+      background: var(--panel-strong);
+      color: var(--ink);
+      outline: none;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+    }
+
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(199, 108, 131, 0.14);
+      transform: translateY(-1px);
+    }
+
+    button {
+      margin-top: 6px;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 16px 30px rgba(159, 79, 101, 0.2);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 22px 34px rgba(159, 79, 101, 0.24);
+      filter: saturate(1.04);
+    }
+
+    .message {
+      display: none;
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .message.show {
+      display: block;
+      animation: rise 0.24s ease;
+    }
+
+    .message.error {
+      background: rgba(172, 76, 85, 0.1);
+      border: 1px solid rgba(172, 76, 85, 0.18);
+      color: var(--danger);
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .shell {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .auth-panel {
+        padding: 26px 18px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      body {
+        padding: 14px;
+      }
+
+      .flow-card {
+        padding: 22px;
+      }
+
+      .field-row {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 56px;
+      }
+
+      h2 {
+        font-size: 28px;
+      }
+    }
+
+    /* ── floating hearts ── */
+    #hearts-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .hrt {
+      position: absolute;
+      bottom: -50px;
+      opacity: 0;
+      animation: floatHeart linear infinite;
+      user-select: none;
+      line-height: 1;
+    }
+
+    @keyframes floatHeart {
+      0%   { transform: translateY(0)      rotate(-12deg); opacity: 0;    }
+      8%   {                                                opacity: 0.48; }
+      88%  {                                                opacity: 0.2;  }
+      100% { transform: translateY(-108vh) rotate(12deg);  opacity: 0;    }
+    }
+
+    main { position: relative; z-index: 1; }
+
+    .hero-hearts {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .hero > *:not(.hero-hearts) {
+      position: relative;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+  <audio id="bg-music" loop preload="auto" src="assets/audio/arka-plan.mp3"></audio>
+  <div id="hearts-canvas" aria-hidden="true"></div>
+  <main class="shell">
+    <section class="hero">
+      <div class="hero-hearts" aria-hidden="true"></div>
+      <div class="tag">Sadece bize ait</div>
+      <h1>Bir tarihi hatırla, gerisi açılsın.</h1>
+      <p class="hero-copy">
+        Bazen tek bir gün, koskoca bir hikâyeyi içinde saklar.
+        Bizim kapımız da o güne açılıyor.
+      </p>
+    </section>
+
+    <section class="auth-panel">
+      <div class="flow-card">
+        <div class="step-label">İlk adım</div>
+        <h2>Tanışma tarihimiz?</h2>
+        <p class="lead">Sadece ikimizin bildiği günü seç.</p>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="day-select">Gün</label>
+            <select id="day-select">
+              <option value="">Gün seç</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="month-select">Ay</label>
+            <select id="month-select">
+              <option value="">Ay seç</option>
+            </select>
+          </div>
+        </div>
+
+        <button id="unlock-btn" type="button">Devam Et</button>
+        <div class="message" id="message-box" aria-live="polite"></div>
+
+      </div>
+    </section>
+  </main>
+
+  <script src="assets/tracker.js"></script>
+  <script>
+    const CORRECT_DAY = "12";
+    const CORRECT_MONTH = "3";
+    const STORAGE_KEY = "tanisma-girisi-izin";
+    const MUSIC_TIME_KEY = "site-music-time";
+    const MUSIC_ALLOWED_KEY = "site-music-allowed";
+
+    const daySelect = document.getElementById("day-select");
+    const monthSelect = document.getElementById("month-select");
+    const unlockButton = document.getElementById("unlock-btn");
+    const messageBox = document.getElementById("message-box");
+    const bgMusic = document.getElementById("bg-music");
+
+    const months = [
+      { value: "1", label: "Ocak" },
+      { value: "2", label: "Şubat" },
+      { value: "3", label: "Mart" },
+      { value: "4", label: "Nisan" },
+      { value: "5", label: "Mayıs" },
+      { value: "6", label: "Haziran" },
+      { value: "7", label: "Temmuz" },
+      { value: "8", label: "Ağustos" },
+      { value: "9", label: "Eylül" },
+      { value: "10", label: "Ekim" },
+      { value: "11", label: "Kasım" },
+      { value: "12", label: "Aralık" }
+    ];
+
+    function populateDayOptions() {
+      for (let day = 1; day <= 31; day += 1) {
+        const option = document.createElement("option");
+        option.value = String(day);
+        option.textContent = String(day);
+        daySelect.appendChild(option);
+      }
+    }
+
+    function populateMonthOptions() {
+      months.forEach((month) => {
+        const option = document.createElement("option");
+        option.value = month.value;
+        option.textContent = month.label;
+        monthSelect.appendChild(option);
+      });
+    }
+
+    function showMessage(type, text) {
+      messageBox.className = "message show " + type;
+      messageBox.textContent = text;
+    }
+
+    function unlock() {
+      telegramLog("✅ Doğru tarihi girdi! Siteye erişim sağlandı 🎉");
+      localStorage.setItem(STORAGE_KEY, "ok");
+      window.location.href = "hosgeldin.html";
+    }
+
+    function validateAnswer() {
+      if (!daySelect.value || !monthSelect.value) {
+        showMessage("error", "Devam etmek için önce gün ve ay seçmelisin.");
+        return;
+      }
+
+      if (daySelect.value === CORRECT_DAY && monthSelect.value === CORRECT_MONTH) {
+        unlock();
+        return;
+      }
+
+      var gunAdi = daySelect.value || "?";
+      var ayAdi  = monthSelect.options[monthSelect.selectedIndex] ? monthSelect.options[monthSelect.selectedIndex].text : (monthSelect.value || "?");
+      telegramLog("❌ Yanlış tarih denedi: " + gunAdi + " " + ayAdi);
+      showMessage("error", "Bu tarih doğru değil. Bir kez daha düşün ve tekrar dene.");
+    }
+
+    function setupBackgroundMusic() {
+      const savedTime = Number(sessionStorage.getItem(MUSIC_TIME_KEY) || "0");
+      bgMusic.volume = 0.4;
+
+      bgMusic.addEventListener("loadedmetadata", () => {
+        if (savedTime > 0 && savedTime < bgMusic.duration) {
+          bgMusic.currentTime = savedTime;
+        }
+      });
+
+      const storeMusicTime = () => {
+        sessionStorage.setItem(MUSIC_TIME_KEY, String(bgMusic.currentTime || 0));
+      };
+
+      const tryPlayMusic = () => {
+        bgMusic.play()
+          .then(() => {
+            localStorage.setItem(MUSIC_ALLOWED_KEY, "yes");
+          })
+          .catch(() => {});
+      };
+
+      bgMusic.addEventListener("timeupdate", storeMusicTime);
+      window.addEventListener("beforeunload", storeMusicTime);
+
+      ["click", "change", "keydown", "touchstart"].forEach((eventName) => {
+        window.addEventListener(eventName, tryPlayMusic, { once: true });
+      });
+
+      if (localStorage.getItem(MUSIC_ALLOWED_KEY) === "yes") {
+        tryPlayMusic();
+      }
+
+      window.addEventListener("load", tryPlayMusic, { once: true });
+    }
+
+    populateDayOptions();
+    populateMonthOptions();
+    setupBackgroundMusic();
+
+    unlockButton.addEventListener("click", validateAnswer);
+
+    // hero hearts
+    (function () {
+      document.querySelectorAll(".hero-hearts").forEach(function (c) {
+        var col = ["rgba(255,220,225,0.55)","rgba(255,200,210,0.45)","rgba(255,240,244,0.5)","rgba(255,180,195,0.4)"];
+        var sz  = [10, 14, 18, 12, 16, 9, 20];
+        for (var i = 0; i < 16; i++) {
+          var s = document.createElement("span");
+          s.className = "hrt";
+          s.textContent = "\u2665";
+          s.style.left              = (Math.random() * 100) + "%";
+          s.style.fontSize          = sz[i % sz.length] + "px";
+          s.style.color             = col[i % col.length];
+          s.style.animationDuration = (7 + Math.random() * 10) + "s";
+          s.style.animationDelay    = (Math.random() * 12) + "s";
+          c.appendChild(s);
+        }
+      });
+    }());
+
+    // hearts
+    (function () {
+      var c = document.getElementById("hearts-canvas");
+      var col = ["#e07389","#d45e77","#f2a9b5","#c96a80","#f7c2cb","#ba4f68","#e89aaa"];
+      var sz  = [13, 17, 21, 26, 11, 16, 20, 24];
+      for (var i = 0; i < 22; i++) {
+        var s = document.createElement("span");
+        s.className = "hrt";
+        s.textContent = "\u2665";
+        s.style.left              = (Math.random() * 100) + "%";
+        s.style.fontSize          = sz[i % sz.length] + "px";
+        s.style.color             = col[i % col.length];
+        s.style.animationDuration = (9 + Math.random() * 12) + "s";
+        s.style.animationDelay    = (Math.random() * 15) + "s";
+        c.appendChild(s);
+      }
+    }());
+  </script>
+</body>
+</html>

@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hoş Geldin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fff6f3;
+      --bg-soft: #f0d7d0;
+      --panel: rgba(255, 251, 248, 0.84);
+      --ink: #301e23;
+      --muted: #7b6368;
+      --shadow: 0 30px 90px rgba(110, 59, 68, 0.18);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Manrope", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.96), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(204, 114, 133, 0.16), transparent 34%),
+        linear-gradient(135deg, var(--bg) 0%, var(--bg-soft) 100%);
+      padding: 24px;
+    }
+
+    .page {
+      width: min(980px, 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: 20px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 40px 34px;
+      border-radius: 34px;
+      color: #fff8fb;
+      background: linear-gradient(145deg, rgba(68, 26, 36, 0.98) 0%, rgba(157, 86, 99, 0.9) 58%, rgba(233, 176, 161, 0.84) 110%);
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -40px;
+      bottom: -70px;
+      width: 240px;
+      height: 240px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .hero-tag::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ffd9df;
+    }
+
+    h1 {
+      margin: 20px 0 10px;
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(50px, 7vw, 82px);
+      line-height: 0.92;
+      letter-spacing: -0.06em;
+      max-width: 8ch;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 680px;
+      line-height: 1.8;
+      color: rgba(255, 248, 251, 0.86);
+      position: relative;
+      z-index: 1;
+    }
+
+    .letter-card {
+      padding: 28px 26px;
+      border-radius: 32px;
+      background: var(--panel);
+      box-shadow: 0 18px 42px rgba(110, 59, 68, 0.1);
+      backdrop-filter: blur(18px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .inner-hearts {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .letter-text {
+      position: relative;
+      z-index: 1;
+    }
+
+    .letter-text {
+      margin: 0;
+      color: var(--ink);
+      font-size: 16px;
+      line-height: 2;
+      white-space: pre-line;
+    }
+
+    .devam-card {
+      padding: 28px 26px;
+      border-radius: 32px;
+      background: var(--panel);
+      box-shadow: 0 18px 42px rgba(110, 59, 68, 0.1);
+      backdrop-filter: blur(18px);
+      display: flex;
+      justify-content: center;
+    }
+
+    .devam-btn {
+      border: 0;
+      border-radius: 999px;
+      padding: 15px 40px;
+      min-width: 200px;
+      background: linear-gradient(135deg, #b55468 0%, #d9878b 100%);
+      color: #fff8fb;
+      font: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      box-shadow: 0 16px 32px rgba(181, 84, 104, 0.28);
+      transition: transform 0.18s, box-shadow 0.18s;
+    }
+
+    .devam-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 22px 40px rgba(181, 84, 104, 0.32);
+    }
+
+    /* sayı sayacı */
+    .counter-card {
+      padding: 32px 28px;
+      border-radius: 32px;
+      background: linear-gradient(145deg, rgba(68,26,36,0.97) 0%, rgba(157,86,99,0.88) 60%, rgba(233,176,161,0.82) 110%);
+      box-shadow: var(--shadow);
+      text-align: center;
+      color: #fff8fb;
+    }
+
+    .counter-label {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: rgba(255,240,245,0.7);
+      margin: 0 0 18px;
+    }
+
+    .counter-units {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .counter-unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      min-width: 72px;
+    }
+
+    .counter-num {
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(40px, 7vw, 64px);
+      line-height: 1;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+    .counter-unit-label {
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(255,240,245,0.6);
+      font-weight: 600;
+    }
+
+    .counter-divider {
+      font-family: "Cormorant Garamond", serif;
+      font-size: 44px;
+      line-height: 1;
+      color: rgba(255,240,245,0.3);
+      align-self: flex-start;
+      margin-top: 4px;
+    }
+
+    .counter-sub {
+      margin: 18px 0 0;
+      font-size: 13px;
+      color: rgba(255,240,245,0.65);
+      font-style: italic;
+    }
+
+    @media (max-width: 720px) {
+      body { padding: 14px; }
+      .hero, .letter-card { padding: 22px 20px; }
+      .letter-text { font-size: 15px; }
+    }
+
+    /* floating hearts */
+    #hearts-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .hrt {
+      position: absolute;
+      bottom: -50px;
+      opacity: 0;
+      animation: floatHeart linear infinite;
+      user-select: none;
+      line-height: 1;
+    }
+
+    @keyframes floatHeart {
+      0%   { transform: translateY(0)      rotate(-12deg); opacity: 0;    }
+      8%   {                                                opacity: 0.48; }
+      88%  {                                                opacity: 0.2;  }
+      100% { transform: translateY(-108vh) rotate(12deg);  opacity: 0;    }
+    }
+
+    main { position: relative; z-index: 1; }
+
+    .hero-hearts {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .hero > *:not(.hero-hearts) {
+      position: relative;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+  <audio id="bg-music" loop preload="auto" src="assets/audio/arka-plan.mp3"></audio>
+  <div id="hearts-canvas" aria-hidden="true"></div>
+
+  <main class="page">
+    <section class="hero">
+      <div class="hero-hearts" aria-hidden="true"></div>
+      <div class="hero-tag">Sana özel</div>
+      <h1>Hoş geldin.</h1>
+      <p>Burayı senin için hazırladım.</p>
+    </section>
+
+    <section class="letter-card">
+      <div class="inner-hearts" aria-hidden="true"></div>
+      <p class="letter-text" id="hosgeldin-text">biliyorum bunu açmak için okumak için bile sebebin yok ve okumayacak nefretin var.. en azından öyle gözüküyor.. ama inanmak istemiyorum seni ne kadar üzdüğümü biliyorum ama bana o kadar nefretle baktığını nefret ettiğini düşünmek inanmak istemiyorum yemin ederim iki gündür yemek yiyemiyorum sokağa çıkamıyorum o kadar rezil bi haldeyim ki..
+
+beni bırakmaması için dua ediyorum sadece seni ona zorlayan ben olsam da.. sana değersiz hissettiren ben olsam da.. sana dedim zaten ilişkinin başında her şey halledilir ama içinde yoksa sevgini gösteremiyorsan yoktur diye biliyorum bunu ben dedim ama seni o kadar çok seviyorum ki öyle olmadığı için bu kadar sana kendimi anlatmaya çalışıyorum. yanılmışım.
+
+ki sevgimi gösteremediğimi de düşünmüyorum çünkü gösteremeyen insan yanında da gösteremezdi. ama ben sana bakmaya hiç doyamadım.
+
+sen de iste güzelim.. sen de iste ben seni yine mutlu edeyim izin ver bana... lütfen... dayanamıyorum sensizliğe alışamıyorum gidişine.</p>
+    </section>
+
+    <section class="counter-card" id="counter-card">
+      <p class="counter-label">♥ 12 Mart 2025’den beri</p>
+      <div class="counter-units">
+        <div class="counter-unit">
+          <span class="counter-num" id="cnt-gun">0</span>
+          <span class="counter-unit-label">Gün</span>
+        </div>
+        <span class="counter-divider">:</span>
+        <div class="counter-unit">
+          <span class="counter-num" id="cnt-saat">00</span>
+          <span class="counter-unit-label">Saat</span>
+        </div>
+        <span class="counter-divider">:</span>
+        <div class="counter-unit">
+          <span class="counter-num" id="cnt-dk">00</span>
+          <span class="counter-unit-label">Dakika</span>
+        </div>
+        <span class="counter-divider">:</span>
+        <div class="counter-unit">
+          <span class="counter-num" id="cnt-sn">00</span>
+          <span class="counter-unit-label">Saniye</span>
+        </div>
+      </div>
+      <p class="counter-sub">birlikte geçiyor. ♥</p>
+    </section>
+
+    <div class="devam-card">
+      <button class="devam-btn" onclick="gotoGallery()">Devam Et →</button>
+    </div>
+  </main>
+
+  <script src="assets/tracker.js"></script>
+  <script>
+    const STORAGE_KEY    = "tanisma-girisi-izin";
+    const MUSIC_TIME_KEY = "site-music-time";
+    const MUSIC_ALLOWED_KEY = "site-music-allowed";
+    const bgMusic = document.getElementById("bg-music");
+
+    if (localStorage.getItem(STORAGE_KEY) !== "ok") {
+      window.location.href = "index.html";
+    }
+
+    function setupBackgroundMusic() {
+      const savedTime = Number(sessionStorage.getItem(MUSIC_TIME_KEY) || "0");
+      bgMusic.volume = 0.4;
+
+      bgMusic.addEventListener("loadedmetadata", () => {
+        if (savedTime > 0 && savedTime < bgMusic.duration) {
+          bgMusic.currentTime = savedTime;
+        }
+      });
+
+      const storeMusicTime = () => {
+        sessionStorage.setItem(MUSIC_TIME_KEY, String(bgMusic.currentTime || 0));
+      };
+
+      const tryPlayMusic = () => {
+        bgMusic.play()
+          .then(() => { localStorage.setItem(MUSIC_ALLOWED_KEY, "yes"); })
+          .catch(() => {});
+      };
+
+      bgMusic.addEventListener("timeupdate", storeMusicTime);
+      window.addEventListener("beforeunload", storeMusicTime);
+
+      ["click", "change", "keydown", "touchstart"].forEach((e) => {
+        window.addEventListener(e, tryPlayMusic, { once: true });
+      });
+
+      if (localStorage.getItem(MUSIC_ALLOWED_KEY) === "yes") tryPlayMusic();
+      window.addEventListener("load", tryPlayMusic, { once: true });
+    }
+
+    function gotoGallery() {
+      telegramLog("🌸 Hoş geldin sayfasından geçti, galeriye gidiyor.");
+      sessionStorage.setItem(MUSIC_TIME_KEY, String(bgMusic.currentTime || 0));
+      window.location.href = "anilarimiz.html";
+    }
+
+    setupBackgroundMusic();
+
+    // Birliktelik sayacı — 12 Mart 2025
+    (function() {
+      var start = new Date("2025-03-12T00:00:00");
+      function pad(n) { return n < 10 ? "0" + n : String(n); }
+      function tick() {
+        var now  = new Date();
+        var diff = now - start;
+        if (diff < 0) diff = 0;
+        var sn   = Math.floor(diff / 1000) % 60;
+        var dk   = Math.floor(diff / 60000) % 60;
+        var saat = Math.floor(diff / 3600000) % 24;
+        var gun  = Math.floor(diff / 86400000);
+        document.getElementById("cnt-gun").textContent  = gun;
+        document.getElementById("cnt-saat").textContent = pad(saat);
+        document.getElementById("cnt-dk").textContent   = pad(dk);
+        document.getElementById("cnt-sn").textContent   = pad(sn);
+      }
+      tick();
+      setInterval(tick, 1000);
+    }());
+
+    // inner card hearts
+    (function () {
+      document.querySelectorAll(".inner-hearts").forEach(function (c) {
+        var col = ["rgba(220,100,130,0.18)","rgba(200,80,110,0.14)","rgba(240,150,170,0.16)","rgba(180,60,90,0.12)"];
+        var sz  = [9, 12, 15, 10, 13, 8];
+        for (var i = 0; i < 14; i++) {
+          var s = document.createElement("span");
+          s.className = "hrt";
+          s.textContent = "\u2665";
+          s.style.left              = (Math.random() * 100) + "%";
+          s.style.fontSize          = sz[i % sz.length] + "px";
+          s.style.color             = col[i % col.length];
+          s.style.animationDuration = (10 + Math.random() * 14) + "s";
+          s.style.animationDelay    = (Math.random() * 18) + "s";
+          c.appendChild(s);
+        }
+      });
+    }());
+
+    // hero hearts
+    (function () {
+      document.querySelectorAll(".hero-hearts").forEach(function (c) {
+        var col = ["rgba(255,220,225,0.55)","rgba(255,200,210,0.45)","rgba(255,240,244,0.5)","rgba(255,180,195,0.4)"];
+        var sz  = [10, 14, 18, 12, 16, 9, 20];
+        for (var i = 0; i < 16; i++) {
+          var s = document.createElement("span");
+          s.className = "hrt";
+          s.textContent = "\u2665";
+          s.style.left              = (Math.random() * 100) + "%";
+          s.style.fontSize          = sz[i % sz.length] + "px";
+          s.style.color             = col[i % col.length];
+          s.style.animationDuration = (7 + Math.random() * 10) + "s";
+          s.style.animationDelay    = (Math.random() * 12) + "s";
+          c.appendChild(s);
+        }
+      });
+    }());
+
+    // bg hearts
+    (function () {
+      var c = document.getElementById("hearts-canvas");
+      var col = ["#e07389","#d45e77","#f2a9b5","#c96a80","#f7c2cb","#ba4f68","#e89aaa"];
+      var sz  = [13, 17, 21, 26, 11, 16, 20, 24];
+      for (var i = 0; i < 22; i++) {
+        var s = document.createElement("span");
+        s.className = "hrt";
+        s.textContent = "\u2665";
+        s.style.left              = (Math.random() * 100) + "%";
+        s.style.fontSize          = sz[i % sz.length] + "px";
+        s.style.color             = col[i % col.length];
+        s.style.animationDuration = (9 + Math.random() * 12) + "s";
+        s.style.animationDelay    = (Math.random() * 15) + "s";
+        c.appendChild(s);
+      }
+    }());
+  </script>
+</body>
+</html>

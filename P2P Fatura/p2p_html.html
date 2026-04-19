@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>P2P Ticaret Paneli</title>
+<link rel="stylesheet" href="../styles/p2p-premium.css">
+<style media="not all">
+:root{
+  --bg:#f3efe8;--bg-elev:#fbf8f2;--card:rgba(255,255,255,.72);--card-strong:#fff;
+  --border:rgba(19,34,48,.10);--text:#18202a;--muted:#8a93a0;--sub:#52606d;
+  --hdr:rgba(240,234,225,.92);--hover:rgba(15,118,110,.07);--sidebar:rgba(255,255,255,.66);
+  --sb-border:rgba(19,34,48,.08);--inp-bg:rgba(255,255,255,.84);--inp-text:#18202a;
+  --accent:#0f766e;--accent-h:#115e59;--accent-2:#d4a54a;--asoft:rgba(15,118,110,.08);--aborder:rgba(15,118,110,.18);
+  --shadow:0 20px 48px rgba(30,41,59,.08);--shadow-soft:0 10px 24px rgba(30,41,59,.06);--ring:rgba(15,118,110,.14);
+}
+[data-theme="dark"]{
+  --bg:#08131a;--bg-elev:#0e1b25;--card:rgba(13,27,36,.78);--card-strong:#11232d;
+  --border:rgba(148,163,184,.14);--text:#edf4f8;--muted:#7e8b97;--sub:#bac5cf;
+  --hdr:rgba(16,33,43,.94);--hover:rgba(15,118,110,.15);--sidebar:rgba(9,20,29,.82);
+  --sb-border:rgba(148,163,184,.10);--inp-bg:rgba(9,20,29,.86);--inp-text:#edf4f8;
+  --accent:#33b6aa;--accent-h:#63d3c9;--accent-2:#efc46d;--asoft:rgba(51,182,170,.12);--aborder:rgba(51,182,170,.26);
+  --shadow:0 24px 56px rgba(2,8,23,.36);--shadow-soft:0 12px 28px rgba(2,8,23,.24);--ring:rgba(51,182,170,.2);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI Variable","Segoe UI","Inter","Helvetica Neue",sans-serif;background:linear-gradient(180deg,var(--bg) 0%,var(--bg-elev) 100%);color:var(--text);display:flex;min-height:100vh;position:relative;overflow-x:hidden;transition:background .2s,color .2s}
+body::before,body::after{content:'';position:fixed;pointer-events:none;border-radius:999px;filter:blur(18px);opacity:.65;z-index:0}
+body::before{width:360px;height:360px;top:-110px;right:-120px;background:radial-gradient(circle,var(--asoft) 0%,rgba(0,0,0,0) 70%)}
+body::after{width:300px;height:300px;left:-120px;bottom:-90px;background:radial-gradient(circle,rgba(212,165,74,.12) 0%,rgba(0,0,0,0) 72%)}
+aside{width:248px;background:var(--sidebar);border-right:1px solid var(--sb-border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:10;backdrop-filter:blur(18px);box-shadow:var(--shadow-soft)}
+.logo{padding:24px 18px 18px;border-bottom:1px solid var(--sb-border);display:flex;align-items:center;gap:12px}
+.brand-mark{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--accent) 0%,#27b8ad 70%,var(--accent-2) 100%);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;letter-spacing:.12em;box-shadow:0 12px 24px rgba(15,118,110,.24)}
+.logo h1{font-size:18px;font-weight:700;color:var(--text);letter-spacing:-.03em}
+.logo p{font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.12em}
+nav{padding:16px 10px;flex:1;display:flex;flex-direction:column;gap:8px}
+.nav-btn{width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;border:1px solid transparent;background:rgba(255,255,255,.18);cursor:pointer;font-size:13px;font-weight:600;color:var(--sub);text-align:left;transition:background .15s,color .15s,transform .15s,border-color .15s,box-shadow .15s}
+.nav-btn:hover{background:var(--card-strong);border-color:var(--border);box-shadow:var(--shadow-soft);transform:translateX(2px)}
+.nav-btn.active{background:linear-gradient(135deg,var(--accent),#1aa598);color:#fff;box-shadow:0 14px 26px rgba(15,118,110,.24)}
+.nav-ic{width:32px;height:32px;border-radius:11px;display:inline-flex;align-items:center;justify-content:center;background:rgba(15,118,110,.10);color:var(--accent);font-size:10px;font-weight:800;letter-spacing:.12em;flex-shrink:0}
+.nav-btn.active .nav-ic{background:rgba(255,255,255,.18);color:#fff}
+.sidebar-footer{padding:14px 10px 16px;border-top:1px solid var(--sb-border)}
+.dark-toggle{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 14px;border-radius:16px;border:1px solid var(--border);background:var(--card-strong);color:var(--sub);cursor:pointer;font-size:12px;font-weight:700;letter-spacing:.03em;transition:all .15s;box-shadow:var(--shadow-soft)}
+.dark-toggle:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-1px)}
+main{margin-left:248px;padding:38px 36px 48px;flex:1;min-height:100vh;position:relative;z-index:1}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:24px}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+h2{font-size:34px;font-weight:700;line-height:1.02;letter-spacing:-.045em;margin-bottom:6px;color:var(--text)}
+.section-note{font-size:14px;color:var(--sub);max-width:720px;line-height:1.5}
+.card-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;letter-spacing:.01em}
+.card{background:var(--card);border-radius:24px;border:1px solid var(--border);padding:20px 22px;margin-bottom:18px;backdrop-filter:blur(16px);box-shadow:var(--shadow);transition:transform .15s,box-shadow .15s}
+.card:hover{transform:translateY(-1px)}
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;margin-bottom:22px}
+.metric{background:linear-gradient(180deg,var(--card-strong) 0%,rgba(255,255,255,.55) 100%);border-radius:20px;border:1px solid var(--border);padding:18px 18px 16px;box-shadow:var(--shadow-soft);position:relative;overflow:hidden}
+.metric::after{content:'';position:absolute;right:-18px;top:-18px;width:88px;height:88px;border-radius:50%;background:radial-gradient(circle,var(--asoft) 0%,rgba(0,0,0,0) 70%)}
+.metric label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;display:block;margin-bottom:10px;font-weight:700}
+.metric span{font-size:28px;font-weight:700;color:var(--text);letter-spacing:-.04em;position:relative;z-index:1}
+.tab-content{display:none;opacity:0;transform:translateY(10px);transition:opacity .22s ease,transform .22s ease}
+.tab-content.active{display:block;opacity:1;transform:translateY(0)}
+input,select,textarea{width:100%;border:1px solid var(--border);border-radius:14px;padding:11px 14px;font-size:13px;background:var(--inp-bg);color:var(--inp-text);outline:none;transition:border .15s,box-shadow .15s,background .2s,transform .15s;box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--ring);transform:translateY(-1px)}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.field label{font-size:12px;color:var(--sub);font-weight:700;letter-spacing:.02em}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.btn{padding:11px 18px;border-radius:14px;border:none;cursor:pointer;font-size:13px;font-weight:700;transition:all .15s;letter-spacing:.01em}
+.btn-primary{background:linear-gradient(135deg,var(--accent) 0%,#1aa598 100%);color:#fff;box-shadow:0 14px 28px rgba(15,118,110,.20)}
+.btn-primary:hover{background:linear-gradient(135deg,var(--accent-h) 0%,var(--accent) 100%);transform:translateY(-1px)}
+.btn-secondary{background:rgba(255,255,255,.72);color:var(--sub);border:1px solid var(--border);box-shadow:var(--shadow-soft)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.btn-danger{background:#fff1f2;color:#dc2626;box-shadow:var(--shadow-soft)}
+.btn-danger:hover{background:#ffe4e6}
+[data-theme="dark"] .btn-danger{background:#2a1515;color:#f87171}
+[data-theme="dark"] .btn-danger:hover{background:#3a1a1a}
+.btn-full{width:100%;margin-top:6px}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.mode-toggle{display:flex;gap:8px;margin-bottom:18px;padding:6px;background:rgba(255,255,255,.34);border:1px solid var(--border);border-radius:18px;width:max-content;max-width:100%}
+.mode-btn{padding:10px 16px;border-radius:12px;border:1px solid transparent;background:transparent;color:var(--sub);cursor:pointer;font-size:12px;font-weight:700;transition:all .15s}
+.mode-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.preview-box{background:linear-gradient(135deg,var(--asoft) 0%,rgba(255,255,255,.35) 100%);border:1px solid var(--aborder);border-radius:20px;padding:16px 18px;margin:14px 0;box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}
+.preview-box .prow{display:flex;justify-content:space-between;font-size:13px;padding:6px 0}
+.preview-box .prow span:last-child{font-weight:600;color:var(--accent)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:14px 12px;background:var(--hdr);color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.16em;font-weight:700}
+td{padding:14px 12px;border-top:1px solid var(--border);color:var(--text)}
+tr:nth-child(even) td{background:color-mix(in srgb,var(--hdr) 50%,transparent)}
+tr:hover td{background:var(--hover)}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
+.badge-saved{background:#f0f0eb;color:#666}
+[data-theme="dark"] .badge-saved{background:#2a2a2a;color:#aaa}
+.badge-draft{background:#eff6ff;color:#2563eb}
+[data-theme="dark"] .badge-draft{background:#1e2a4a;color:#60a5fa}
+.badge-signed{background:#f0fdf4;color:#16a34a}
+[data-theme="dark"] .badge-signed{background:#0f2a1a;color:#4ade80}
+.badge-error{background:#fef2f2;color:#dc2626}
+[data-theme="dark"] .badge-error{background:#2a1010;color:#f87171}
+.badge-pending{background:#faf5ff;color:#7c3aed}
+[data-theme="dark"] .badge-pending{background:#1a1030;color:#a78bfa}
+.alert{padding:12px 14px;border-radius:14px;font-size:13px;margin-top:10px;font-weight:600}
+.alert-ok{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
+.alert-err{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+.alert-info{background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe}
+[data-theme="dark"] .alert-ok{background:#0f2a1a;color:#86efac;border-color:#166534}
+[data-theme="dark"] .alert-err{background:#2a1010;color:#fca5a5;border-color:#7f1d1d}
+[data-theme="dark"] .alert-info{background:#10233d;color:#93c5fd;border-color:#1d4ed8}
+.filter-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;padding:14px;border-radius:20px;background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow-soft)}
+.filter-row input,.filter-row select{width:auto;flex:1;min-width:120px}
+.summary-row{display:flex;gap:16px;font-size:13px;color:var(--muted);margin-bottom:12px;flex-wrap:wrap;padding:0 4px}
+.summary-row b{color:var(--text)}
+.cb-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-top:1px solid var(--border);font-size:13px}
+.cb-row input[type=checkbox]{width:auto}
+.action-box{background:linear-gradient(135deg,var(--asoft) 0%,rgba(255,255,255,.28) 100%);border:1px solid var(--aborder);border-radius:18px;padding:16px;margin-top:12px;box-shadow:var(--shadow-soft)}
+.action-box p{font-size:13px;font-weight:600;color:var(--accent);margin-bottom:10px}
+.archive-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:14px 16px;cursor:pointer;transition:border .15s,background .15s,transform .15s,box-shadow .15s;font-size:13px;box-shadow:var(--shadow-soft)}
+.archive-card:hover,.archive-card.active{border-color:var(--accent)}
+.archive-card:hover{transform:translateY(-2px)}
+.archive-card.active{background:var(--asoft)}
+.archive-card .alabel{font-weight:600;color:var(--text);font-size:13px}
+.archive-card .ameta{font-size:11px;color:var(--muted);margin-top:3px}
+.archive-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:18px}
+.week-box{background:linear-gradient(135deg,rgba(212,165,74,.14) 0%,rgba(255,255,255,.55) 100%);border:1px solid rgba(212,165,74,.34);border-radius:22px;padding:16px 18px;margin-bottom:18px;box-shadow:var(--shadow-soft)}
+[data-theme="dark"] .week-box{background:linear-gradient(135deg,rgba(239,196,109,.12) 0%,rgba(17,35,45,.85) 100%);border-color:rgba(239,196,109,.28)}
+.week-box h3{font-size:14px;font-weight:700;color:#9a6508;margin-bottom:6px;letter-spacing:-.01em}
+[data-theme="dark"] .week-box h3{color:#fbbf24}
+.week-box p{font-size:12px;color:#b97711;margin-bottom:12px;line-height:1.5}
+[data-theme="dark"] .week-box p{color:#fde68a}
+.chart-wrap{height:220px;position:relative;margin-top:8px;padding:8px 0 20px}
+.bar-chart{display:flex;align-items:flex-end;gap:4px;height:100%;padding-bottom:20px}
+.bar-group{display:flex;flex-direction:column;align-items:center;flex:1;gap:2px}
+.bar{background:linear-gradient(180deg,#22b8ac 0%,var(--accent) 100%);border-radius:6px 6px 0 0;width:100%;min-height:2px;transition:height .3s;box-shadow:0 10px 18px rgba(15,118,110,.16)}
+.bar-label{font-size:9px;color:var(--muted);text-align:center;white-space:nowrap;overflow:hidden;max-width:40px}
+.quick-usdt{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.qbtn{padding:6px 10px;border-radius:999px;border:1px solid var(--aborder);background:var(--asoft);color:var(--accent);font-size:11px;cursor:pointer;transition:background .15s,transform .15s}
+.qbtn:hover{background:var(--aborder);transform:translateY(-1px)}
+.stat-section h3{font-size:14px;font-weight:700;color:var(--text);margin:0 0 12px}
+@media (max-width:1024px){
+  body{display:block}
+  aside{width:100%;height:auto;position:static;display:block;padding-bottom:12px}
+  .logo{border-bottom:none;padding:18px 14px 10px}
+  nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:10px 12px;gap:8px}
+  .nav-btn{min-width:0}
+  .sidebar-footer{border-top:none;padding:0 12px}
+  main{margin-left:0;padding:28px 20px 36px}
+}
+@media (max-width:720px){
+  nav{display:grid;grid-template-columns:1fr 1fr;padding:10px 12px}
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  .metric-grid{grid-template-columns:1fr 1fr}
+  .filter-row{flex-direction:column}
+  .filter-row input,.filter-row select{width:100%}
+  .mode-toggle{width:100%;display:grid;grid-template-columns:1fr}
+  h2{font-size:28px}
+  .section-note{font-size:13px}
+}
+@media (max-width:480px){
+  main{padding:20px 12px 28px}
+  .metric-grid,.archive-grid{grid-template-columns:1fr}
+  .card{padding:16px}
+  .page-head{margin-bottom:18px}
+}
+</style>
+</head>
+<body>
+
+<aside>
+  <div class="logo">
+    <div class="brand-mark">P2P</div>
+    <div>
+      <h1>P2P Paneli</h1>
+      <p>Furkan V9 Web</p>
+    </div>
+  </div>
+  <nav>
+    <button class="nav-btn active" onclick="showTab('dashboard', this)"><span class="nav-ic">DB</span><span>Dashboard</span></button>
+    <button class="nav-btn" onclick="showTab('new', this)"><span class="nav-ic">YN</span><span>Yeni İşlem</span></button>
+    <button class="nav-btn" onclick="showTab('active', this)"><span class="nav-ic">AK</span><span>Aktif Liste</span></button>
+    <button class="nav-btn" onclick="showTab('archive', this)"><span class="nav-ic">AR</span><span>Arşiv</span></button>
+    <button class="nav-btn" onclick="showTab('stats', this)"><span class="nav-ic">ST</span><span>İstatistikler</span></button>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="dark-toggle" onclick="toggleDark()">
+      <span id="dark-icon">🌙</span><span id="dark-label">Koyu Tema</span>
+    </button>
+  </div>
+</aside>
+
+<main>
+  <!-- DASHBOARD -->
+  <div id="tab-dashboard" class="tab-content active">
+    <div class="page-head"><div><div class="eyebrow">Finans Kontrol Merkezi</div><h2>Dashboard</h2><p class="section-note">Güncel işlem akışlarını, son kayıtları ve operasyon özetlerini tek ekranda izleyin.</p></div></div>
+    <div class="dashboard-hero">
+      <div class="hero-panel">
+        <div class="hero-kicker">Operasyon Özeti</div>
+        <div class="hero-title" id="dash-hero-title">Canlı veri özeti hazırlanıyor</div>
+        <div class="hero-text" id="dash-hero-text">Bugünkü hacim, haftalık tempo ve öne çıkan müşteri burada anlık olarak görünür.</div>
+        <div class="hero-pills">
+          <span class="hero-pill" id="dash-hero-pill-1"><strong>Bugün</strong> —</span>
+          <span class="hero-pill" id="dash-hero-pill-2"><strong>Bu hafta</strong> —</span>
+          <span class="hero-pill" id="dash-hero-pill-3"><strong>Toplam KDV</strong> —</span>
+        </div>
+      </div>
+      <div class="hero-side">
+        <div>
+          <div class="hero-side-label">Odak</div>
+          <div class="hero-side-value" id="dash-hero-focus">Hazırlanıyor</div>
+          <div class="hero-side-meta" id="dash-hero-meta">Kayıt geldikçe aktif hacim, ortalama fatura ve müşteri odağı burada öne çıkacak.</div>
+        </div>
+        <div class="hero-mini-grid">
+          <div class="hero-mini"><span>Canlı Kayıt</span><strong id="dash-hero-mini-1">—</strong></div>
+          <div class="hero-mini"><span>Ort. Fatura</span><strong id="dash-hero-mini-2">—</strong></div>
+          <div class="hero-mini"><span>Toplam KDV</span><strong id="dash-hero-mini-3">—</strong></div>
+          <div class="hero-mini"><span>Haftalık Hacim</span><strong id="dash-hero-mini-4">—</strong></div>
+        </div>
+      </div>
+    </div>
+    <div class="metric-grid" id="metrics"></div>
+    <div class="card">
+      <div class="card-title">Son 10 İşlem</div>
+      <table><thead><tr><th>Tarih</th><th>Müşteri</th><th>Toplam</th><th>Durum</th></tr></thead>
+      <tbody id="recent-tbody"></tbody></table>
+    </div>
+  </div>
+
+  <!-- YENİ İŞLEM -->
+  <div id="tab-new" class="tab-content">
+    <div class="page-head"><div><div class="eyebrow">İşlem Yönetimi</div><h2>Yeni İşlem Gir</h2><p class="section-note">Müşteri bilgisini, hesaplanan fatura alanlarını ve manuel giriş akışını daha net bir düzende yönetin.</p></div></div>
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="mode-auto" onclick="setMode('auto')">Otomatik Hesapla</button>
+      <button class="mode-btn" id="mode-manual" onclick="setMode('manual')">Manuel Fatura Ekle</button>
+    </div>
+    <div class="card">
+      <div class="grid-2">
+        <div class="field"><label>Müşteri Adı Soyadı</label><input id="n-name" placeholder="Ahmet Yılmaz"></div>
+        <div class="field"><label>T.C. Kimlik No</label><input id="n-tc" value="11111111111" maxlength="11"></div>
+      </div>
+      <div class="grid-2">
+        <div class="field"><label>İşlem Tarihi</label><input type="date" id="n-date"></div>
+        <div></div>
+      </div>
+
+      <div id="auto-fields">
+        <div id="quick-usdt-wrap" class="quick-usdt"></div>
+        <div class="grid-3">
+          <div class="field"><label>Satılan USDT</label><input type="number" id="n-usdt" value="100" step="10" oninput="calcPreview()"></div>
+          <div class="field"><label>Alış Kuru</label><input type="number" id="n-alis" value="44.30" step="0.10" oninput="calcPreview()"></div>
+          <div class="field"><label>Satış Kuru</label><input type="number" id="n-satis" value="48.00" step="0.10" oninput="calcPreview()"></div>
+        </div>
+        <div class="preview-box" id="preview-box">
+          <div class="prow"><span>Vergisiz Bedel</span><span id="prev-vergisiz">—</span></div>
+          <div class="prow"><span>KDV (%20)</span><span id="prev-kdv">—</span></div>
+          <div class="prow"><span>Toplam Fatura</span><span id="prev-toplam">—</span></div>
+        </div>
+      </div>
+
+      <div id="manual-fields" style="display:none">
+        <div class="grid-3">
+          <div class="field"><label>Vergisiz Bedel</label><input type="number" id="m-vergisiz" value="100" step="10" oninput="checkManual()"></div>
+          <div class="field"><label>KDV</label><input type="number" id="m-kdv" value="20" step="1" oninput="checkManual()"></div>
+          <div class="field"><label>Toplam Fatura</label><input type="number" id="m-toplam" value="120" step="10" oninput="checkManual()"></div>
+        </div>
+        <div id="manual-warn"></div>
+      </div>
+
+      <button class="btn btn-primary btn-full" id="save-btn" onclick="saveTransaction()">Hesapla, Kaydet ve GİB'e Gönder</button>
+      <div id="new-msg"></div>
+    </div>
+  </div>
+
+  <!-- AKTİF LİSTE -->
+  <div id="tab-active" class="tab-content">
+    <div class="page-head"><div><div class="eyebrow">Canlı Kayıtlar</div><h2>Aktif İşlem Listesi</h2><p class="section-note">Filtreleyin, seçin ve toplu aksiyonları daha temiz bir tablo ve aksiyon yüzeyi üzerinden yönetin.</p></div></div>
+    <div class="filter-row">
+      <input id="f-search" placeholder="Müşteri ara…" oninput="renderActive()">
+      <input type="date" id="f-start" onchange="renderActive()">
+      <input type="date" id="f-end" onchange="renderActive()">
+      <input type="number" id="f-min" placeholder="Min fatura" step="100" oninput="renderActive()">
+      <button class="btn btn-secondary" onclick="renderActive()">Yenile</button>
+    </div>
+    <div class="summary-row" id="active-summary"></div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table>
+        <thead><tr>
+          <th><input type="checkbox" id="chk-all" onchange="toggleAllActive(this)"></th>
+          <th>Tarih</th><th>Müşteri</th><th>Vergisiz</th><th>KDV</th><th>Toplam</th><th>GİB</th>
+        </tr></thead>
+        <tbody id="active-tbody"></tbody>
+      </table>
+    </div>
+    <div id="active-actions"></div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="exportXlsx('active')">📥 Excel İndir</button>
+    </div>
+  </div>
+
+  <!-- ARŞİV -->
+  <div id="tab-archive" class="tab-content">
+    <div class="page-head"><div><div class="eyebrow">Arşiv ve Yedek</div><h2>Fatura Arşivi</h2><p class="section-note">Haftalık kapanışları yapın, arşiv klasörlerini izleyin ve detay kayıt görünümüne hızlıca geçin.</p></div></div>
+    <div class="week-box">
+      <h3>📦 Haftayı Kapat ve Arşivle</h3>
+      <p>Tüm aktif kayıtlar arşivlenir.</p>
+      <div style="display:flex;gap:8px">
+        <input id="week-label" placeholder="Arşiv etiketi (ör: 07.04 - 13.04.2025)" style="flex:1">
+        <button class="btn btn-primary" onclick="closeWeek()">Arşivle</button>
+      </div>
+    </div>
+    <div id="archive-list" class="archive-grid"></div>
+    <div id="archive-detail"></div>
+  </div>
+
+  <!-- İSTATİSTİKLER -->
+  <div id="tab-stats" class="tab-content">
+    <div class="page-head"><div><div class="eyebrow">Analitik Görünüm</div><h2>İstatistikler</h2><p class="section-note">Dönemsel performansı, müşteri yoğunluğunu ve GİB dağılımını daha rafine bir analitik görünümle takip edin.</p></div></div>
+    <div class="filter-row">
+      <input type="date" id="s-start" onchange="renderStats()">
+      <input type="date" id="s-end" onchange="renderStats()">
+    </div>
+    <div class="metric-grid" id="stat-metrics"></div>
+    <div class="card stat-section">
+      <div class="card-title">Günlük Fatura Trendi</div>
+      <div class="chart-wrap"><div class="bar-chart" id="bar-chart"></div></div>
+    </div>
+    <div class="grid-2" style="gap:12px">
+      <div class="card stat-section">
+        <div class="card-title">En Çok Ciro Üreten Müşteriler</div>
+        <table><thead><tr><th>Müşteri</th><th>Kayıt</th><th>Toplam</th></tr></thead>
+        <tbody id="top-customers"></tbody></table>
+      </div>
+      <div class="card stat-section">
+        <div class="card-title">GİB Durum Dağılımı</div>
+        <table><thead><tr><th>Durum</th><th>Adet</th></tr></thead>
+        <tbody id="gib-dist"></tbody></table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const DB_KEY = 'p2p_transactions';
+const AR_KEY = 'p2p_archives';
+let mode = 'auto';
+let selectedActive = new Set();
+let selectedArchive = null;
+
+function applyTheme(dark) {
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  document.getElementById('dark-icon').textContent = dark ? '☀️' : '🌙';
+  document.getElementById('dark-label').textContent = dark ? 'Açık Tema' : 'Koyu Tema';
+  localStorage.setItem('p2p_theme', dark ? 'dark' : 'light');
+}
+
+function toggleDark() {
+  applyTheme(document.documentElement.getAttribute('data-theme') !== 'dark');
+}
+
+function getData() { try { return JSON.parse(localStorage.getItem(DB_KEY) || '[]'); } catch { return []; } }
+function saveData(d) { localStorage.setItem(DB_KEY, JSON.stringify(d)); }
+function getArchives() { try { return JSON.parse(localStorage.getItem(AR_KEY) || '[]'); } catch { return []; } }
+function saveArchives(a) { localStorage.setItem(AR_KEY, JSON.stringify(a)); }
+function fmt(n) { return Number(n||0).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function today() { return new Date().toISOString().slice(0,10); }
+function uid() { return Date.now() + Math.random().toString(36).slice(2,7); }
+
+function syncArchivesFromData() {
+  const rows = getData().filter(r => r.archived && r.archiveKey);
+  const storedLabels = Object.fromEntries(getArchives().map(a => [a.key, a.label]));
+  const archiveMap = new Map();
+
+  rows.forEach(r => {
+    if (!archiveMap.has(r.archiveKey)) {
+      archiveMap.set(r.archiveKey, {
+        key: r.archiveKey,
+        label: r.archiveLabel || storedLabels[r.archiveKey] || r.archiveKey,
+        count: 0,
+        total: 0,
+      });
+    }
+    const archive = archiveMap.get(r.archiveKey);
+    archive.count += 1;
+    archive.total += (+r.toplam || 0);
+  });
+
+  const archives = [...archiveMap.values()].sort((a, b) => String(b.key).localeCompare(String(a.key), 'tr'));
+  saveArchives(archives);
+  return archives;
+}
+
+function badgeHtml(s) {
+  const cls = {
+    'Kaydedildi':'badge-saved','Taslak Oluşturuldu':'badge-draft',
+    'İmzalandı':'badge-signed','GİB Hatası':'badge-error','API Bekleniyor':'badge-pending'
+  };
+  return `<span class="badge ${cls[s]||'badge-saved'}">${s}</span>`;
+}
+
+// ── Tab navigation ────────────────────────────────────────────────────────────
+function showTab(id, trigger) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active','fade-in'));
+  document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+  const tab = document.getElementById('tab-'+id);
+  tab.classList.add('active');
+  requestAnimationFrame(() => requestAnimationFrame(() => tab.classList.add('fade-in')));
+  (trigger || event.currentTarget).classList.add('active');
+  if (id==='dashboard') renderDashboard();
+  if (id==='active') { initActiveFilters(); renderActive(); }
+  if (id==='archive') renderArchiveTab();
+  if (id==='stats') { initStatFilters(); renderStats(); }
+  if (id==='new') { initNewForm(); renderQuickUsdt(); }
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+function renderDashboardHero(summary) {
+  const count = Number(summary.count || 0);
+  const focus = summary.topCustomer && summary.topCustomer !== '-' ? summary.topCustomer : 'Veri bekleniyor';
+  const avgTicket = count ? summary.weekTotal / count : 0;
+  document.getElementById('dash-hero-title').textContent = count
+    ? `${focus} etrafında ${count} kayıtlık canlı akış`
+    : 'Canlı işlem özeti veri bekliyor';
+  document.getElementById('dash-hero-text').textContent = count
+    ? `Bugün ₺${fmt(summary.todayTotal)} üretildi. Haftalık toplam ₺${fmt(summary.weekTotal)} ve ortalama fatura ₺${fmt(avgTicket)} seviyesinde.`
+    : 'Yeni kayıt eklendikçe bu alan günlük hacmi, haftalık ritmi ve öne çıkan müşteriyi otomatik olarak özetleyecek.';
+  document.getElementById('dash-hero-pill-1').innerHTML = `<strong>Bugün</strong> ₺${fmt(summary.todayTotal)}`;
+  document.getElementById('dash-hero-pill-2').innerHTML = `<strong>Bu hafta</strong> ₺${fmt(summary.weekTotal)}`;
+  document.getElementById('dash-hero-pill-3').innerHTML = `<strong>Toplam KDV</strong> ₺${fmt(summary.kdvTotal)}`;
+  document.getElementById('dash-hero-focus').textContent = focus;
+  document.getElementById('dash-hero-meta').textContent = count
+    ? `Bu hafta ${summary.weekCount} işlem izlendi. En aktif müşteri odağı ve KDV yükü tek bakışta görünür.`
+    : 'Henüz gösterilecek özet oluşmadı.';
+  document.getElementById('dash-hero-mini-1').textContent = String(count);
+  document.getElementById('dash-hero-mini-2').textContent = '₺' + fmt(avgTicket);
+  document.getElementById('dash-hero-mini-3').textContent = '₺' + fmt(summary.kdvTotal);
+  document.getElementById('dash-hero-mini-4').textContent = '₺' + fmt(summary.weekTotal);
+}
+
+function renderDashboard() {
+  const data = getData().filter(r => !r.archived);
+  const td = today();
+  const weekStart = (() => { const d=new Date(); d.setDate(d.getDate()-d.getDay()+1); return d.toISOString().slice(0,10); })();
+  const monthStart = td.slice(0,7)+'-01';
+  const sum = (arr, key) => arr.reduce((a,r) => a+(+r[key]||0), 0);
+  const bugun = sum(data.filter(r=>r.date===td), 'toplam');
+  const hafta = sum(data.filter(r=>r.date>=weekStart), 'toplam');
+  const ay = sum(data.filter(r=>r.date>=monthStart), 'toplam');
+  const kdv = sum(data, 'kdv');
+  const weekCount = data.filter(r=>r.date>=weekStart).length;
+  const mus = data.reduce((a,r) => { a[r.musteri]=(a[r.musteri]||0)+1; return a; }, {});
+  const topMus = Object.entries(mus).sort((a,b)=>b[1]-a[1])[0]?.[0] || '-';
+  renderDashboardHero({
+    count:data.length,
+    todayTotal:bugun,
+    weekTotal:hafta,
+    kdvTotal:kdv,
+    topCustomer:topMus,
+    weekCount
+  });
+  document.getElementById('metrics').innerHTML = [
+    ['Bugün', '₺'+fmt(bugun)],['Bu Hafta','₺'+fmt(hafta)],['Bu Ay','₺'+fmt(ay)],
+    ['Toplam KDV','₺'+fmt(kdv)],['Toplam Kayıt',data.length],['En Aktif Müşteri',topMus]
+  ].map(([l,v])=>`<div class="metric"><label>${l}</label><span>${v}</span></div>`).join('');
+
+  const recent = [...data].sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id)).slice(0,10);
+  document.getElementById('recent-tbody').innerHTML = recent.map(r=>`
+    <tr><td>${r.date}</td><td>${r.musteri}</td><td>₺${fmt(r.toplam)}</td><td>${badgeHtml(r.gib)}</td></tr>
+  `).join('') || '<tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px">Kayıt yok</td></tr>';
+}
+
+// ── New Transaction ───────────────────────────────────────────────────────────
+function initNewForm() {
+  const di = document.getElementById('n-date');
+  if (!di.value) di.value = today();
+}
+
+function setMode(m) {
+  mode = m;
+  document.getElementById('mode-auto').classList.toggle('active', m==='auto');
+  document.getElementById('mode-manual').classList.toggle('active', m==='manual');
+  document.getElementById('auto-fields').style.display = m==='auto' ? '' : 'none';
+  document.getElementById('manual-fields').style.display = m==='manual' ? '' : 'none';
+  document.getElementById('save-btn').textContent = m==='auto' ? 'Hesapla, Kaydet ve GİB\'e Gönder' : 'Manuel Fatura Ekle';
+  if (m==='auto') calcPreview();
+}
+
+function calcPreview() {
+  const usdt = parseFloat(document.getElementById('n-usdt').value)||0;
+  const alis = parseFloat(document.getElementById('n-alis').value)||0;
+  const satis = parseFloat(document.getElementById('n-satis').value)||0;
+  const t = Math.round(usdt*(satis-alis)*100)/100;
+  const v = Math.round((t/1.20)*100)/100;
+  const k = Math.round((t-v)*100)/100;
+  document.getElementById('prev-vergisiz').textContent = '₺'+fmt(v);
+  document.getElementById('prev-kdv').textContent = '₺'+fmt(k);
+  document.getElementById('prev-toplam').textContent = '₺'+fmt(t);
+  return {vergisiz:v, kdv:k, toplam:t};
+}
+
+function checkManual() {
+  const v = parseFloat(document.getElementById('m-vergisiz').value)||0;
+  const k = parseFloat(document.getElementById('m-kdv').value)||0;
+  const t = parseFloat(document.getElementById('m-toplam').value)||0;
+  const expected = Math.round((v+k)*100)/100;
+  const w = document.getElementById('manual-warn');
+  if (Math.round(t*100)/100 !== expected)
+    w.innerHTML = `<div class="alert alert-err">Beklenen toplam: ₺${fmt(expected)}</div>`;
+  else w.innerHTML = '';
+}
+
+function renderQuickUsdt() {
+  const data = getData();
+  const counts = {};
+  data.forEach(r => { if (r.usdt>0) counts[r.usdt]=(counts[r.usdt]||0)+1; });
+  const top = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,8).map(e=>+e[0]);
+  const wrap = document.getElementById('quick-usdt-wrap');
+  wrap.innerHTML = top.map(v=>`<button class="qbtn" onclick="document.getElementById('n-usdt').value=${v};calcPreview()">${fmt(v)} USDT</button>`).join('');
+}
+
+function saveTransaction() {
+  const name = document.getElementById('n-name').value.trim();
+  const tc = document.getElementById('n-tc').value.trim();
+  const date = document.getElementById('n-date').value;
+  if (!name) return showMsg('new-msg','err','Müşteri adı boş bırakılamaz.');
+  if (!/^\d{11}$/.test(tc)) return showMsg('new-msg','err','T.C. Kimlik No 11 haneli rakam olmalıdır.');
+  if (!date || date > today()) return showMsg('new-msg','err','Geçerli bir işlem tarihi girin.');
+
+  let rec;
+  if (mode === 'auto') {
+    const {vergisiz, kdv, toplam} = calcPreview();
+    const usdt = parseFloat(document.getElementById('n-usdt').value)||0;
+    if (usdt <= 0) return showMsg('new-msg','err','USDT sıfırdan büyük olmalı.');
+    rec = { vergisiz, kdv, toplam, usdt,
+      alis: parseFloat(document.getElementById('n-alis').value)||0,
+      satis: parseFloat(document.getElementById('n-satis').value)||0 };
+  } else {
+    const vergisiz = parseFloat(document.getElementById('m-vergisiz').value)||0;
+    const kdv = parseFloat(document.getElementById('m-kdv').value)||0;
+    const toplam = parseFloat(document.getElementById('m-toplam').value)||0;
+    if (Math.round(toplam*100)/100 !== Math.round((vergisiz+kdv)*100)/100)
+      return showMsg('new-msg','err','Toplam fatura, vergisiz + KDV ile eşleşmiyor.');
+    rec = { vergisiz, kdv, toplam, usdt:0, alis:0, satis:0 };
+  }
+
+  const data = getData();
+  data.unshift({ id:uid(), date, musteri:name, tc, ...rec, gib:'Kaydedildi', kaynak:mode, archived:false });
+  saveData(data);
+  showMsg('new-msg','ok',`Kayıt oluşturuldu. Vergisiz: ₺${fmt(rec.vergisiz)} | KDV: ₺${fmt(rec.kdv)} | Toplam: ₺${fmt(rec.toplam)}`);
+  document.getElementById('n-name').value = '';
+  renderQuickUsdt();
+}
+
+function showMsg(elId, type, text) {
+  const el = document.getElementById(elId);
+  el.innerHTML = `<div class="alert alert-${type==='ok'?'ok':'err'}">${text}</div>`;
+  setTimeout(()=>el.innerHTML='', 5000);
+}
+
+// ── Active List ───────────────────────────────────────────────────────────────
+function initActiveFilters() {
+  const s = document.getElementById('f-start');
+  const e = document.getElementById('f-end');
+  if (!s.value) { const d=new Date(); s.value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01'; }
+  if (!e.value) e.value = today();
+}
+
+function getFiltered() {
+  const data = getData().filter(r=>!r.archived);
+  const search = (document.getElementById('f-search').value||'').toLowerCase();
+  const start = document.getElementById('f-start').value;
+  const end = document.getElementById('f-end').value;
+  const min = parseFloat(document.getElementById('f-min').value)||0;
+  return data.filter(r => {
+    if (search && !r.musteri.toLowerCase().includes(search)) return false;
+    if (start && r.date < start) return false;
+    if (end && r.date > end) return false;
+    if (min && r.toplam < min) return false;
+    return true;
+  });
+}
+
+function renderActive() {
+  const rows = getFiltered();
+  const total = rows.reduce((a,r)=>({f:a.f+(+r.toplam||0),k:a.k+(+r.kdv||0)}), {f:0,k:0});
+  document.getElementById('active-summary').innerHTML =
+    `<span><b>${rows.length}</b> kayıt</span><span>Toplam: <b>₺${fmt(total.f)}</b></span><span>KDV: <b>₺${fmt(total.k)}</b></span><span>Seçili: <b>${selectedActive.size}</b></span>`;
+
+  document.getElementById('active-tbody').innerHTML = rows.map(r => `
+    <tr>
+      <td><input type="checkbox" ${selectedActive.has(r.id)?'checked':''} onchange="toggleRow('${r.id}',this)"></td>
+      <td>${r.date}</td><td>${r.musteri}</td>
+      <td>₺${fmt(r.vergisiz)}</td><td>₺${fmt(r.kdv)}</td>
+      <td style="font-weight:600">₺${fmt(r.toplam)}</td>
+      <td>${badgeHtml(r.gib)}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="7" style="text-align:center;color:#aaa;padding:20px">Kayıt bulunamadı.</td></tr>';
+
+  renderActiveActions();
+}
+
+function toggleRow(id, cb) {
+  if (cb.checked) selectedActive.add(id); else selectedActive.delete(id);
+  renderActive();
+}
+
+function toggleAllActive(cb) {
+  const rows = getFiltered();
+  if (cb.checked) rows.forEach(r=>selectedActive.add(r.id));
+  else rows.forEach(r=>selectedActive.delete(r.id));
+  renderActive();
+}
+
+function renderActiveActions() {
+  const el = document.getElementById('active-actions');
+  if (selectedActive.size === 0) { el.innerHTML = ''; return; }
+  const archives = syncArchivesFromData();
+  const archiveOpts = archives.map(a=>`<option value="${a.key}">${a.label} (${a.count} kayıt)</option>`).join('');
+  el.innerHTML = `
+    <div class="action-box">
+      <p>${selectedActive.size} kayıt seçildi</p>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="markSigned()">✍️ İmzalandı İşaretle</button>
+        <button class="btn btn-danger" onclick="deleteSelected()">🗑️ Sil</button>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+        <select id="arch-target" style="width:auto;flex:1;min-width:160px">
+          <option value="new">Yeni arşiv oluştur</option>
+          ${archiveOpts}
+        </select>
+        <input id="arch-label" placeholder="Arşiv etiketi" style="width:auto;flex:1;min-width:160px">
+        <button class="btn btn-primary" onclick="moveToArchive()">📦 Arşive Taşı</button>
+      </div>
+    </div>`;
+}
+
+function markSigned() {
+  const data = getData();
+  data.forEach(r => { if (selectedActive.has(r.id)) { r.gib='İmzalandı'; } });
+  saveData(data);
+  selectedActive.clear();
+  renderActive();
+}
+
+function deleteSelected() {
+  if (!confirm(`${selectedActive.size} kaydı silmek istediğinize emin misiniz?`)) return;
+  const data = getData().filter(r => !selectedActive.has(r.id));
+  saveData(data);
+  selectedActive.clear();
+  renderActive();
+}
+
+function moveToArchive() {
+  const target = document.getElementById('arch-target').value;
+  const labelInput = document.getElementById('arch-label').value.trim();
+  const ids = [...selectedActive];
+  if (!ids.length) return;
+
+  const data = getData();
+  let key, label;
+  if (target === 'new') {
+    label = labelInput || 'Arşiv ' + new Date().toLocaleDateString('tr-TR');
+    key = 'ark_' + Date.now();
+  } else {
+    key = target;
+    const archives = getArchives();
+    label = archives.find(a=>a.key===key)?.label || key;
+  }
+
+  let moved = 0;
+  data.forEach(r => { if (ids.includes(r.id) && !r.archived) { r.archived=true; r.archiveKey=key; r.archiveLabel=label; moved++; } });
+  saveData(data);
+  syncArchivesFromData();
+
+  selectedActive.clear();
+  renderActive();
+  alert(`${moved} kayıt "${label}" arşivine taşındı.`);
+}
+
+// ── Archive Tab ───────────────────────────────────────────────────────────────
+function closeWeek() {
+  const data = getData().filter(r=>!r.archived);
+  if (!data.length) return alert('Arşivlenecek aktif kayıt yok.');
+  const label = document.getElementById('week-label').value.trim() || 'Hafta '+new Date().toLocaleDateString('tr-TR');
+  const key = 'week_'+Date.now();
+  const all = getData();
+  all.forEach(r => { if (!r.archived) { r.archived=true; r.archiveKey=key; r.archiveLabel=label; } });
+  saveData(all);
+  syncArchivesFromData();
+  renderArchiveTab();
+  alert(`${data.length} kayıt "${label}" arşivine taşındı.`);
+}
+
+function renderArchiveTab() {
+  const archives = syncArchivesFromData();
+  document.getElementById('archive-list').innerHTML = archives.map(a => `
+    <div class="archive-card ${selectedArchive===a.key?'active':''}" onclick="selectArchive('${a.key}')">
+      <div class="alabel">${a.label}</div>
+      <div class="ameta">${a.count} kayıt · ₺${fmt(a.total)}</div>
+    </div>
+  `).join('') || '<p style="color:#aaa;font-size:13px">Henüz arşiv yok.</p>';
+
+  if (selectedArchive) renderArchiveDetail(selectedArchive);
+}
+
+function selectArchive(key) {
+  selectedArchive = key;
+  renderArchiveTab();
+}
+
+function renderArchiveDetail(key) {
+  const rows = getData().filter(r=>r.archiveKey===key);
+  const tot = rows.reduce((a,r)=>({f:a.f+(+r.toplam||0),k:a.k+(+r.kdv||0),v:a.v+(+r.vergisiz||0)}),{f:0,k:0,v:0});
+  const archLabel = syncArchivesFromData().find(a=>a.key===key)?.label || key;
+  document.getElementById('archive-detail').innerHTML = `
+    <div class="card" style="margin-top:16px">
+      <div style="font-size:14px;font-weight:600;margin-bottom:12px">${archLabel}</div>
+      <div class="metric-grid" style="margin-bottom:16px">
+        <div class="metric"><label>Toplam Fatura</label><span>₺${fmt(tot.f)}</span></div>
+        <div class="metric"><label>Toplam KDV</label><span>₺${fmt(tot.k)}</span></div>
+        <div class="metric"><label>Vergisiz Bedel</label><span>₺${fmt(tot.v)}</span></div>
+      </div>
+      <table><thead><tr><th>Tarih</th><th>Müşteri</th><th>Vergisiz</th><th>KDV</th><th>Toplam</th><th>GİB</th></tr></thead>
+      <tbody>${rows.map(r=>`<tr><td>${r.date}</td><td>${r.musteri}</td><td>₺${fmt(r.vergisiz)}</td><td>₺${fmt(r.kdv)}</td><td style="font-weight:600">₺${fmt(r.toplam)}</td><td>${badgeHtml(r.gib)}</td></tr>`).join('')||'<tr><td colspan="6" style="text-align:center;color:#aaa;padding:16px">Kayıt yok</td></tr>'}</tbody>
+      </table>
+      <div class="btn-row" style="margin-top:12px">
+        <button class="btn btn-secondary" onclick="exportArchiveXlsx('${key}')">📥 Excel İndir</button>
+        <button class="btn btn-danger" onclick="restoreArchive('${key}')">🗑️ Arşivi Sil (Aktife Al)</button>
+      </div>
+    </div>`;
+}
+
+function restoreArchive(key) {
+  if (!confirm('Bu arşiv silinip kayıtlar aktife geri alınacak. Devam?')) return;
+  const data = getData();
+  data.forEach(r => { if (r.archiveKey===key) { r.archived=false; delete r.archiveKey; delete r.archiveLabel; } });
+  saveData(data);
+  syncArchivesFromData();
+  selectedArchive = null;
+  renderArchiveTab();
+  document.getElementById('archive-detail').innerHTML = '';
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+function initStatFilters() {
+  const s = document.getElementById('s-start');
+  const e = document.getElementById('s-end');
+  if (!s.value) { const d=new Date(); s.value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01'; }
+  if (!e.value) e.value = today();
+}
+
+function renderStats() {
+  const start = document.getElementById('s-start').value;
+  const end = document.getElementById('s-end').value;
+  const data = getData().filter(r => (!start||r.date>=start) && (!end||r.date<=end));
+
+  const totals = data.reduce((a,r)=>({f:a.f+(+r.toplam||0),k:a.k+(+r.kdv||0),v:a.v+(+r.vergisiz||0)}),{f:0,k:0,v:0});
+  const avg = data.length ? totals.f/data.length : 0;
+  const mus = new Set(data.map(r=>r.musteri));
+
+  document.getElementById('stat-metrics').innerHTML = [
+    ['Toplam Kayıt',data.length],['Toplam Fatura','₺'+fmt(totals.f)],
+    ['Vergisiz Bedel','₺'+fmt(totals.v)],['Toplam KDV','₺'+fmt(totals.k)],
+    ['Ortalama Fatura','₺'+fmt(avg)],['Tekil Müşteri',mus.size]
+  ].map(([l,v])=>`<div class="metric"><label>${l}</label><span>${v}</span></div>`).join('');
+
+  // Günlük trend (bar chart)
+  const daily = {};
+  data.forEach(r=>{ daily[r.date]=(daily[r.date]||0)+(+r.toplam||0); });
+  const days = Object.entries(daily).sort((a,b)=>a[0].localeCompare(b[0])).slice(-20);
+  const maxVal = Math.max(...days.map(d=>d[1]),1);
+  document.getElementById('bar-chart').innerHTML = days.map(([d,v])=>`
+    <div class="bar-group">
+      <div class="bar" style="height:${Math.round(v/maxVal*140)}px" title="₺${fmt(v)}"></div>
+      <div class="bar-label">${d.slice(5)}</div>
+    </div>`).join('');
+
+  // Top müşteriler
+  const cusMap = {};
+  data.forEach(r=>{ if(!cusMap[r.musteri]) cusMap[r.musteri]={n:0,t:0}; cusMap[r.musteri].n++; cusMap[r.musteri].t+=(+r.toplam||0); });
+  const topCus = Object.entries(cusMap).sort((a,b)=>b[1].t-a[1].t).slice(0,10);
+  document.getElementById('top-customers').innerHTML = topCus.map(([n,v])=>`<tr><td>${n}</td><td>${v.n}</td><td>₺${fmt(v.t)}</td></tr>`).join('') || '<tr><td colspan="3" style="text-align:center;color:#aaa">Veri yok</td></tr>';
+
+  // GİB dağılımı
+  const gibMap = {};
+  data.forEach(r=>{ gibMap[r.gib]=(gibMap[r.gib]||0)+1; });
+  document.getElementById('gib-dist').innerHTML = Object.entries(gibMap).map(([s,c])=>`<tr><td>${badgeHtml(s)}</td><td><b>${c}</b></td></tr>`).join('') || '<tr><td colspan="2" style="text-align:center;color:#aaa">Veri yok</td></tr>';
+}
+
+// ── Export ────────────────────────────────────────────────────────────────────
+function exportXlsx(type) {
+  const data = type==='active' ? getData().filter(r=>!r.archived) : getData().filter(r=>r.archived);
+  downloadCsv(data, type==='active'?'aktif_kayitlar':'arsiv_kayitlar');
+}
+
+function exportArchiveXlsx(key) {
+  const data = getData().filter(r=>r.archiveKey===key);
+  downloadCsv(data, 'arsiv_'+key);
+}
+
+function downloadCsv(data, fname) {
+  const headers = ['İşlem Tarihi','Müşteri Adı','T.C. Kimlik No','Vergisiz Bedel','KDV','Toplam Fatura','GİB Durumu'];
+  const rows = data.map(r=>[r.date,r.musteri,r.tc,r.vergisiz,r.kdv,r.toplam,r.gib].map(v=>`"${v}"`).join(','));
+  const total = data.reduce((a,r)=>({v:a.v+(+r.vergisiz||0),k:a.k+(+r.kdv||0),t:a.t+(+r.toplam||0)}),{v:0,k:0,t:0});
+  rows.push(['','TOPLAM','',''+total.v.toFixed(2),''+total.k.toFixed(2),''+total.t.toFixed(2),''].map(v=>`"${v}"`).join(','));
+  const csv = '\uFEFF'+headers.join(',')+'\n'+rows.join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download = fname+'.csv';
+  a.click();
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+(() => {
+  const saved = localStorage.getItem('p2p_theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(saved ? saved === 'dark' : prefersDark);
+})();
+document.getElementById('n-date').value = today();
+calcPreview();
+renderDashboard();
+syncArchivesFromData();
+</script>
+</body>
+</html>

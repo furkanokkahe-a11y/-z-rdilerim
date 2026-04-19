@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Senin İçin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fff6f2;
+      --bg-soft: #f1d7cf;
+      --panel: rgba(255, 251, 248, 0.8);
+      --ink: #301e23;
+      --muted: #81656a;
+      --accent: #cc7285;
+      --shadow: 0 28px 80px rgba(110, 59, 68, 0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Manrope", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.95), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(204, 114, 133, 0.16), transparent 34%),
+        linear-gradient(135deg, var(--bg) 0%, var(--bg-soft) 100%);
+      padding: 24px;
+      display: grid;
+      place-items: center;
+    }
+
+    .wrap {
+      width: min(1100px, 100%);
+      display: grid;
+      gap: 20px;
+    }
+
+    .hero {
+      padding: 38px 34px;
+      border-radius: 34px;
+      background: linear-gradient(145deg, rgba(68, 26, 36, 0.98) 0%, rgba(157, 86, 99, 0.9) 58%, rgba(233, 176, 161, 0.84) 110%);
+      box-shadow: var(--shadow);
+      color: #fff9fb;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -40px;
+      bottom: -70px;
+      width: 240px;
+      height: 240px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .hero-tag::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ffd9df;
+    }
+
+    h1 {
+      margin: 20px 0 10px;
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(48px, 7vw, 82px);
+      line-height: 0.92;
+      letter-spacing: -0.06em;
+      max-width: 8ch;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 700px;
+      color: rgba(255, 249, 251, 0.86);
+      line-height: 1.8;
+      position: relative;
+      z-index: 1;
+    }
+
+    .video-shell {
+      padding: 22px;
+      border-radius: 30px;
+      background: var(--panel);
+      box-shadow: 0 18px 42px rgba(110, 59, 68, 0.1);
+      backdrop-filter: blur(18px);
+      display: grid;
+      gap: 18px;
+    }
+
+    .video-wrap {
+      position: relative;
+      border-radius: 24px;
+      overflow: hidden;
+      background: #1a1115;
+    }
+
+    video {
+      width: 100%;
+      display: block;
+      border-radius: 24px;
+      background: #1a1115;
+      max-height: 72vh;
+    }
+
+    #play-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      background: rgba(20, 5, 12, 0.55);
+      cursor: pointer;
+      border-radius: 24px;
+      transition: background 0.2s;
+    }
+
+    #play-overlay:hover {
+      background: rgba(20, 5, 12, 0.4);
+    }
+
+    #play-overlay .play-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #b55468, #d9878b);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 32px rgba(181,84,104,0.5);
+      font-size: 28px;
+      color: #fff;
+      padding-left: 5px;
+    }
+
+    #play-overlay p {
+      color: rgba(255,240,245,0.9);
+      font-size: 13px;
+      margin: 0;
+      font-style: italic;
+    }
+
+    .continue-row {
+      display: flex;
+      justify-content: center;
+    }
+
+    .continue-button {
+      border: 0;
+      border-radius: 999px;
+      padding: 16px 28px;
+      min-width: 220px;
+      background: linear-gradient(135deg, #b55468 0%, #d9878b 100%);
+      color: #fff8fb;
+      font: inherit;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      box-shadow: 0 16px 32px rgba(181, 84, 104, 0.28);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+    }
+
+    .continue-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 22px 40px rgba(181, 84, 104, 0.32);
+    }
+
+    .continue-button:active {
+      transform: translateY(0);
+    }
+
+    @media (max-width: 720px) {
+      body {
+        padding: 14px;
+      }
+
+      .hero,
+      .video-shell {
+        padding: 20px;
+      }
+    }
+
+    /* ── floating hearts ── */
+    #hearts-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .hrt {
+      position: absolute;
+      bottom: -50px;
+      opacity: 0;
+      animation: floatHeart linear infinite;
+      user-select: none;
+      line-height: 1;
+    }
+
+    @keyframes floatHeart {
+      0%   { transform: translateY(0)      rotate(-12deg); opacity: 0;    }
+      8%   {                                                opacity: 0.48; }
+      88%  {                                                opacity: 0.2;  }
+      100% { transform: translateY(-108vh) rotate(12deg);  opacity: 0;    }
+    }
+
+    main { position: relative; z-index: 1; }
+
+    .hero-hearts {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .hero > *:not(.hero-hearts) {
+      position: relative;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+  <audio id="bg-music" loop preload="auto" src="assets/audio/arka-plan.mp3"></audio>
+  <div id="hearts-canvas" aria-hidden="true"></div>
+
+  <main class="wrap">
+    <section class="hero">
+      <div class="hero-hearts" aria-hidden="true"></div>
+      <div class="hero-tag">Sonraki sayfa</div>
+      <h1>Şimdi bunu izle.</h1>
+      <p>
+        Buraya geldiğine göre artık sana ayırdığım videodasın.
+        Bence bunu izlerken arkadaki müzikle birlikte her şey daha da güzel olacak.
+      </p>
+    </section>
+
+    <section class="video-shell">
+      <div class="video-wrap">
+        <video id="love-video" controls playsinline>
+          <source src="assets/video/bizim-video-aac.mp4" type="video/mp4">
+          Tarayıcın videoyu açamadı.
+        </video>
+        <div id="play-overlay">
+          <div class="play-icon">▶</div>
+          <p>oynatmak için dokun</p>
+        </div>
+      </div>
+
+      <div class="continue-row">
+        <button class="continue-button" id="continue-button" type="button">İzledim, devam et</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="assets/tracker.js"></script>
+  <script>
+    const STORAGE_KEY = "tanisma-girisi-izin";
+    const MUSIC_TIME_KEY = "site-music-time";
+    const MUSIC_ALLOWED_KEY = "site-music-allowed";
+    const bgMusic = document.getElementById("bg-music");
+    const loveVideo = document.getElementById("love-video");
+    const continueButton = document.getElementById("continue-button");
+
+    if (localStorage.getItem(STORAGE_KEY) !== "ok") {
+      window.location.href = "index.html";
+    }
+
+    function setupBackgroundMusic() {
+      const savedTime = Number(sessionStorage.getItem(MUSIC_TIME_KEY) || "0");
+      bgMusic.volume = 0.4;
+
+      bgMusic.addEventListener("loadedmetadata", () => {
+        if (savedTime > 0 && savedTime < bgMusic.duration) {
+          bgMusic.currentTime = savedTime;
+        }
+      });
+
+      const storeMusicTime = () => {
+        sessionStorage.setItem(MUSIC_TIME_KEY, String(bgMusic.currentTime || 0));
+      };
+
+      const tryPlayMusic = () => {
+        bgMusic.play()
+          .then(() => {
+            localStorage.setItem(MUSIC_ALLOWED_KEY, "yes");
+          })
+          .catch(() => {});
+      };
+
+      bgMusic.addEventListener("timeupdate", storeMusicTime);
+      window.addEventListener("beforeunload", storeMusicTime);
+
+      ["click", "change", "keydown", "touchstart"].forEach((eventName) => {
+        window.addEventListener(eventName, tryPlayMusic, { once: true });
+      });
+
+      if (localStorage.getItem(MUSIC_ALLOWED_KEY) === "yes") {
+        tryPlayMusic();
+      }
+
+      window.addEventListener("load", tryPlayMusic, { once: true });
+    }
+
+    function goToClosingPage() {
+      // Müzik zamanını burada yazmayız — anilarimiz.html'den kaydettiğimiz zaman korunur
+      window.location.href = "ozur.html";
+    }
+
+    continueButton.addEventListener("click", goToClosingPage);
+
+    // Video sesini açık tut
+    loveVideo.muted = false;
+    loveVideo.volume = 1.0;
+
+    var overlay = document.getElementById("play-overlay");
+    overlay.addEventListener("click", function () {
+      loveVideo.muted = false;
+      loveVideo.volume = 1.0;
+      loveVideo.play().then(function () {
+        overlay.style.display = "none";
+      }).catch(function () {
+        overlay.style.display = "none";
+      });
+    });
+
+    // Video sayfasında arka plan müziği çalmıyor
+
+    // hero hearts
+    (function () {
+      document.querySelectorAll(".hero-hearts").forEach(function (c) {
+        var col = ["rgba(255,220,225,0.55)","rgba(255,200,210,0.45)","rgba(255,240,244,0.5)","rgba(255,180,195,0.4)"];
+        var sz  = [10, 14, 18, 12, 16, 9, 20];
+        for (var i = 0; i < 16; i++) {
+          var s = document.createElement("span");
+          s.className = "hrt";
+          s.textContent = "\u2665";
+          s.style.left              = (Math.random() * 100) + "%";
+          s.style.fontSize          = sz[i % sz.length] + "px";
+          s.style.color             = col[i % col.length];
+          s.style.animationDuration = (7 + Math.random() * 10) + "s";
+          s.style.animationDelay    = (Math.random() * 12) + "s";
+          c.appendChild(s);
+        }
+      });
+    }());
+
+    // hearts
+    (function () {
+      var c = document.getElementById("hearts-canvas");
+      var col = ["#e07389","#d45e77","#f2a9b5","#c96a80","#f7c2cb","#ba4f68","#e89aaa"];
+      var sz  = [13, 17, 21, 26, 11, 16, 20, 24];
+      for (var i = 0; i < 22; i++) {
+        var s = document.createElement("span");
+        s.className = "hrt";
+        s.textContent = "\u2665";
+        s.style.left              = (Math.random() * 100) + "%";
+        s.style.fontSize          = sz[i % sz.length] + "px";
+        s.style.color             = col[i % col.length];
+        s.style.animationDuration = (9 + Math.random() * 12) + "s";
+        s.style.animationDelay    = (Math.random() * 15) + "s";
+        c.appendChild(s);
+      }
+    }());
+  </script>
+</body>
+</html>
