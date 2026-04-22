@@ -193,31 +193,63 @@
       transform: rotate(42deg);
     }
 
-    .devam-btn {
+    .choice-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .choice-btn {
+      flex: 1;
+      min-width: 90px;
       border: 0;
       border-radius: 999px;
-      padding: 15px 32px;
-      min-width: 200px;
-      background: linear-gradient(135deg, #b55468 0%, #d9878b 100%);
-      color: #fff8fb;
+      padding: 14px 20px;
       font: inherit;
       font-weight: 700;
+      font-size: 14px;
       letter-spacing: 0.04em;
       cursor: pointer;
-      box-shadow: 0 16px 32px rgba(181, 84, 104, 0.28);
       transition: transform 0.18s, box-shadow 0.18s, opacity 0.18s;
       opacity: 0.4;
       pointer-events: none;
     }
-
-    .devam-btn.active {
+    .choice-btn:not([disabled]) {
       opacity: 1;
       pointer-events: auto;
     }
+    .choice-btn:not([disabled]):hover { transform: translateY(-2px); }
 
-    .devam-btn.active:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 22px 40px rgba(181, 84, 104, 0.32);
+    .choice-btn.evet {
+      background: linear-gradient(135deg, #b55468 0%, #d9878b 100%);
+      color: #fff8fb;
+      box-shadow: 0 14px 28px rgba(181,84,104,0.26);
+    }
+    .choice-btn.evet:not([disabled]):hover { box-shadow: 0 20px 36px rgba(181,84,104,0.36); }
+
+    .choice-btn.hayir {
+      background: rgba(48,30,35,0.08);
+      color: var(--ink);
+      border: 1.5px solid rgba(48,30,35,0.14);
+    }
+    .choice-btn.belki {
+      background: rgba(181,84,104,0.1);
+      color: #8c3a50;
+      border: 1.5px solid rgba(181,84,104,0.22);
+    }
+
+    .choice-response {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--accent);
+      text-align: center;
+      animation: fadeIn 0.4s ease both;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
     @media (max-width: 720px) {
@@ -309,7 +341,13 @@ Bahsettiğim o bir haftalık süreci ya da önümüzdeki her günü; sadece söz
         <input type="checkbox" id="okudum-check">
         Okudum
       </label>
-      <button class="devam-btn" id="devam-btn" type="button">Devam Et</button>
+      <p style="font-size:14px;color:var(--muted);text-align:center;margin:0;">Kabul ediyor musun?</p>
+      <div class="choice-row" id="choice-row">
+        <button class="choice-btn hayir" id="btn-hayir" type="button" disabled>Hayır</button>
+        <button class="choice-btn belki" id="btn-belki" type="button" disabled>Belki</button>
+        <button class="choice-btn evet"  id="btn-evet"  type="button" disabled>Evet</button>
+      </div>
+      <p class="choice-response" id="choice-response" style="display:none;"></p>
     </section>
   </main>
 
@@ -381,17 +419,35 @@ Bahsettiğim o bir haftalık süreci ya da önümüzdeki her günü; sadece söz
       });
     }());
 
-    const okCheck  = document.getElementById("okudum-check");
-    const devamBtn = document.getElementById("devam-btn");
+    const okCheck   = document.getElementById("okudum-check");
+    const btnEvet   = document.getElementById("btn-evet");
+    const btnHayir  = document.getElementById("btn-hayir");
+    const btnBelki  = document.getElementById("btn-belki");
+    const choiceRes = document.getElementById("choice-response");
 
     okCheck.addEventListener("change", () => {
-      devamBtn.classList.toggle("active", okCheck.checked);
+      const ok = okCheck.checked;
+      btnEvet.disabled  = !ok;
+      btnHayir.disabled = !ok;
+      btnBelki.disabled = !ok;
     });
 
-    devamBtn.addEventListener("click", () => {
-      if (!okCheck.checked) return;
+    function handleChoice(msg, telegramMsg) {
       sessionStorage.setItem(MUSIC_TIME_KEY, String(bgMusic.currentTime || 0));
-      window.location.href = "neden_seviyorum.html";
+      if (typeof telegramLog === "function") telegramLog(telegramMsg);
+      document.getElementById("choice-row").style.display = "none";
+      choiceRes.textContent = msg;
+      choiceRes.style.display = "block";
+    }
+
+    btnEvet.addEventListener("click", () => {
+      handleChoice("❤️ Teşekkür ederim. Her şeyi hak ediyorsun.", "💚 EVET dedi! Kabul etti!");
+    });
+    btnHayir.addEventListener("click", () => {
+      handleChoice("🤍 Anladım. Bunu okudun, bu bile yeter.", "💔 Hayır dedi...");
+    });
+    btnBelki.addEventListener("click", () => {
+      handleChoice("🤍 Belki de yeter. Bir günü beklerim.", "🤍 Belki dedi...");
     });
 
     // hero hearts

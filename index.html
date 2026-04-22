@@ -204,6 +204,29 @@
       color: var(--accent-deep);
       letter-spacing: 0.04em;
     }
+
+    .next-btn {
+      align-self: flex-end;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #b55468 0%, #d9878b 100%);
+      color: #fff8fb;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      border: 0;
+      cursor: pointer;
+      box-shadow: 0 14px 28px rgba(181,84,104,0.26);
+      transition: transform 0.18s, box-shadow 0.18s;
+    }
+    .next-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 36px rgba(181,84,104,0.32);
+    }
   </style>
 </head>
 <body>
@@ -230,17 +253,25 @@
         <span class="signature-name">Seni seven biri</span>
         <span class="signature-heart">🤍</span>
       </div>
+
+      <div class="divider"></div>
+
+      <button class="next-btn" id="devam-btn" type="button">Anılarımıza Bak →</button>
     </div>
   </div>
 
   <script src="assets/tracker.js"></script>
   <script>
-    // index.html için özel bildirim
     (function () {
       if (typeof telegramLog === "function") {
         telegramLog("📄 Not sayfasını açtı (index.html)");
       }
     }());
+
+    document.getElementById("devam-btn").addEventListener("click", function () {
+      localStorage.setItem("tanisma-girisi-izin", "ok");
+      window.location.href = "foto1.html";
+    });
   </script>
 
 </body>

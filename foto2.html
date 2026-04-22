@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anı 2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fff6f3; --bg-soft: #f0d7d0;
+      --panel: rgba(255,251,248,0.9);
+      --ink: #301e23; --muted: #7b6368;
+      --accent: #b55468; --accent-deep: #8c3a50;
+      --shadow: 0 36px 90px rgba(110,59,68,0.2);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      font-family: "Manrope", sans-serif; color: var(--ink);
+      background:
+        radial-gradient(circle at 15% 10%, rgba(255,255,255,0.97), transparent 30%),
+        radial-gradient(circle at 85% 90%, rgba(204,114,133,0.18), transparent 36%),
+        linear-gradient(145deg, var(--bg) 0%, var(--bg-soft) 100%);
+      display: grid; place-items: center; padding: 32px 20px;
+    }
+    .bg-photos { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+    .bp { position: absolute; object-fit: cover; border-radius: 12px; opacity: 0.30; filter: blur(0.8px); box-shadow: 0 4px 14px rgba(0,0,0,0.14); }
+    .bp-1  { width:84px;  height:84px;  top:2%;     left:1%;    transform:rotate(-8deg); }
+    .bp-2  { width:76px;  height:76px;  top:4%;     right:2%;   transform:rotate(11deg); }
+    .bp-3  { width:80px;  height:80px;  top:22%;    left:-1%;   transform:rotate(-14deg); }
+    .bp-4  { width:86px;  height:86px;  top:22%;    right:-1%;  transform:rotate(8deg); }
+    .bp-5  { width:90px;  height:90px;  top:46%;    left:0%;    transform:rotate(-10deg); }
+    .bp-6  { width:74px;  height:74px;  top:46%;    right:0%;   transform:rotate(6deg); }
+    .bp-7  { width:82px;  height:82px;  bottom:21%; left:-1%;   transform:rotate(12deg); }
+    .bp-8  { width:78px;  height:78px;  bottom:21%; right:-1%;  transform:rotate(-9deg); }
+    .bp-9  { width:70px;  height:70px;  bottom:3%;  left:2%;    transform:rotate(-7deg); }
+    .bp-10 { width:88px;  height:88px;  bottom:3%;  right:2%;   transform:rotate(10deg); }
+    .card {
+      position: relative; z-index: 1; width: min(540px, 100%);
+      background: var(--panel); border-radius: 36px;
+      border: 1px solid rgba(255,255,255,0.62); box-shadow: var(--shadow);
+      backdrop-filter: blur(20px); overflow: hidden;
+      animation: rise 0.65s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    @keyframes rise { from{opacity:0;transform:translateY(26px)} to{opacity:1;transform:translateY(0)} }
+    .card-header {
+      padding: 0;
+      display: none;
+    }
+    .tag { display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:999px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.18); font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:rgba(255,248,251,0.9); }
+    .tag::before { content:""; width:6px; height:6px; border-radius:50%; background:#ffd9df; }
+    .page-num { font-family:"Cormorant Garamond",serif; font-size:30px; font-weight:600; font-style:italic; opacity:0.55; letter-spacing:-0.04em; }
+    .main-photo { width: 100%; max-height: 55vh; object-fit: contain; display: block; background: rgba(0,0,0,0.03); }
+    .card-body { padding:26px 30px 30px; display:flex; flex-direction:column; gap:18px; }
+    .caption-label {
+      font-size: 10.5px; font-weight: 700; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--accent);
+    }
+    .caption {
+      font-size: 16px;
+      line-height: 1.9;
+      color: var(--ink);
+      font-weight: 500;
+      padding: 18px 20px;
+      background: rgba(181,84,104,0.06);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 14px 14px 0;
+    }
+    .caption em { font-style: italic; color: var(--accent); }
+    .caption strong { font-weight: 700; color: var(--accent-deep); }
+    .divider { height:1px; background:linear-gradient(90deg,transparent,rgba(181,84,104,0.2),transparent); }
+    .next-btn {
+      align-self:flex-end; display:inline-flex; align-items:center; gap:8px;
+      padding:13px 26px; border-radius:999px;
+      background:linear-gradient(135deg,#b55468 0%,#d9878b 100%);
+      color:#fff8fb; font:inherit; font-size:13px; font-weight:700; letter-spacing:0.06em;
+      border:0; cursor:pointer; box-shadow:0 12px 26px rgba(181,84,104,0.26);
+      text-decoration:none; transition:transform 0.18s,box-shadow 0.18s;
+    }
+    .next-btn:hover { transform:translateY(-2px); box-shadow:0 18px 34px rgba(181,84,104,0.32); }
+    .action-row { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+    .dusunce-group { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+    .dusunce-btn { padding:9px 16px; border-radius:999px; border:2px solid rgba(181,84,104,0.25); background:transparent; color:var(--muted); font:inherit; font-size:12px; font-weight:600; cursor:pointer; transition:all 0.15s; }
+    .dusunce-btn:hover { border-color:var(--accent); color:var(--accent); background:rgba(181,84,104,0.06); }
+    .dusunce-btn.selected { background:linear-gradient(135deg,#b55468 0%,#d9878b 100%); border-color:#b55468; color:#fff8fb; box-shadow:0 6px 16px rgba(181,84,104,0.35); transform:scale(1.08); }
+    .next-btn.locked { opacity:0.35; pointer-events:none; cursor:default; }
+    .next-btn.active { opacity:1 !important; pointer-events:auto !important; }
+  </style>
+</head>
+<body>
+
+  <div class="bg-photos" aria-hidden="true">
+    <img src="assets/images/PHOTO-2025-08-15-21-33-42.jpg.jpeg"  class="bp bp-1"  alt="">
+    <img src="assets/images/PHOTO-2025-09-17-18-29-46.jpg.jpeg"  class="bp bp-2"  alt="">
+    <img src="assets/images/PHOTO-2025-09-21-01-40-10.jpg.jpeg"  class="bp bp-3"  alt="">
+    <img src="assets/images/PHOTO-2025-10-20-00-28-52.jpg.jpeg"  class="bp bp-4"  alt="">
+    <img src="assets/images/PHOTO-2025-11-09-11-53-50.jpg.jpeg"  class="bp bp-5"  alt="">
+    <img src="assets/images/PHOTO-2026-01-09-19-47-23.jpg.jpeg"  class="bp bp-6"  alt="">
+    <img src="assets/images/PHOTO-2026-02-07-13-54-24.jpg.jpeg"  class="bp bp-7"  alt="">
+    <img src="assets/images/PHOTO-2026-02-16-14-56-52.jpg.jpeg"  class="bp bp-8"  alt="">
+    <img src="assets/images/WhatsApp%20Image%202026-04-19%20at%2013.21.05.jpeg" class="bp bp-9"  alt="">
+    <img src="assets/images/WhatsApp%20Image%202026-04-19%20at%2013.30.22.jpeg" class="bp bp-10" alt="">
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="tag">Anı 2</span>
+      <span class="page-num">02</span>
+    </div>
+
+    <div class="card-body">
+      <p class="caption">
+        bana sorumluluk almamak için beni suçluyosun dedin ya valla ilişki içinde haklıymışsın ama dün için öyle değil be güzelim. çünkü senin benden bu kadar nefret edeceğine inanamıyorum mahvoluyorum ya. senin icin bizim icin her sorumlulugu almaya hazırım ben. ben bugüne kadar hep niyetim şöyle böyle diye kendimi savundum biliyorum ama aslında her şeyi geçip senin ne hissettiğin hakkında konuşmalıydım. bi insan sevdiği adamdan niye korkar niye çekinir diye hiç düşünmemişim hep seni suçlamışım sorun çıkarıyosun diye ama asıl sorun benim sana yaşattığım o baskıymış o rezil tavırlarmış. onu geçtim keşke bunlar için kavga etseydik diyorum içimden de bu noktaya gelmeseydik.<br><br>
+        biliyorum o hissettiğin nefretin de öfkenin de sebebi benim yaptığım her şey. sorumluluktan kaçmıyorum artık ne bok yediğimi gördüm yemin ederim. ama suçumu hatalarımı kabullenmemek gibi bişey yok aybüke yemin ederim yok köpek gibi pişmanım amk.<br><br>
+        eğer bana o istediğim şansı verirsen o her şeye kızan seni kıran adamı bi daha görmiceksin söz veriyorum. senin o korkunu yenmen için her şeyi yapmaya hazırım. senden barışma bile istemiyorum bana sadece seni ikna edebilmem için en ufak aralık vermeni istiyorum. kendin ikna ol istiyorum. biliyorum bu beni ikna etmek için böyle yapıyor diye de düşünebilirsin ama sana yemin ederim seni kaybetmekse konu ben değişirim abi. görüceksin.
+      </p>
+      <div class="divider"></div>
+      <div class="action-row">
+        <div class="dusunce-group">
+          <button class="dusunce-btn" data-val="💚 İhtimal var" type="button">💚 İhtimal var</button>
+          <button class="dusunce-btn" data-val="🤷 Eh" type="button">🤷 Eh</button>
+          <button class="dusunce-btn" data-val="💔 Nefret" type="button">💔 Nefret</button>
+        </div>
+        <a href="foto3.html" class="next-btn locked" id="devam-btn">Devam Et →</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/tracker.js"></script>
+  <script>
+    (function () {
+      if (typeof telegramLog === "function") telegramLog("🖼️ Anı 2 sayfasını açtı");
+    }());
+    var devamBtn = document.getElementById("devam-btn");
+    document.querySelectorAll(".dusunce-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        document.querySelectorAll(".dusunce-btn").forEach(function (b) { b.classList.remove("selected"); });
+        btn.classList.add("selected");
+        devamBtn.classList.remove("locked");
+        devamBtn.classList.add("active");
+        if (typeof telegramLog === "function") telegramLog("💭 Sayfa 2 düşüncesi: " + btn.dataset.val);
+      });
+    });
+  </script>
+</body>
+</html>
