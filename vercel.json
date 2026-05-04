@@ -2,6 +2,7 @@
   "cleanUrls": false,
   "trailingSlash": false,
   "routes": [
+    { "src": "/$", "dest": "/tanisma_girisi.html" },
     { "src": "/(.*)", "dest": "/$1" }
   ]
 }
