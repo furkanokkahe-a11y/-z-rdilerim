@@ -102,7 +102,7 @@ function telegramLog(mesaj) {
     "tanisma_girisi.html": "Giriş",
     "anilarimiz.html":     "Fotoğraflar",
     "video_sayfasi.html":  "Video",
-    "kapanis.html":        "Son Söz",
+    "kapanis.html":        "Son Not",
     "cevap.html":          "Soru"
   };
   if (!isimler[sayfa]) return;
@@ -131,7 +131,7 @@ function telegramLog(mesaj) {
     "tanisma_girisi.html": "🌸 Biri siteyi açtı! (Henüz şifreyi girmedi)",
     "anilarimiz.html":     "📸 Fotoğraf sayfasını görüntülüyor",
     "video_sayfasi.html":  "🎬 Video sayfasına geçti",
-    "kapanis.html":        "💌 Son mektubu okuyor",
+    "kapanis.html":        "💌 Son not sayfasına geçti",
     "cevap.html":          "❓ Soru sayfasına geçti"
   };
   if (mesajlar[sayfa]) telegramLog(mesajlar[sayfa]);

@@ -277,7 +277,6 @@
   </style>
 </head>
 <body>
-  <audio id="bg-music" loop preload="auto" src="assets/audio/arka-plan.mp3"></audio>
   <div id="hearts-canvas" aria-hidden="true"></div>
 
   <main class="page">
@@ -332,53 +331,16 @@ sen de iste güzelim.. sen de iste ben seni yine mutlu edeyim izin ver bana... l
 
   <script src="assets/tracker.js"></script>
   <script>
-    const STORAGE_KEY    = "tanisma-girisi-izin";
-    const MUSIC_TIME_KEY = "site-music-time";
-    const MUSIC_ALLOWED_KEY = "site-music-allowed";
-    const bgMusic = document.getElementById("bg-music");
+    const STORAGE_KEY = "tanisma-girisi-izin";
 
     if (localStorage.getItem(STORAGE_KEY) !== "ok") {
       window.location.href = "index.html";
     }
 
-    function setupBackgroundMusic() {
-      const savedTime = Number(sessionStorage.getItem(MUSIC_TIME_KEY) || "0");
-      bgMusic.volume = 0.4;
-
-      bgMusic.addEventListener("loadedmetadata", () => {
-        if (savedTime > 0 && savedTime < bgMusic.duration) {
-          bgMusic.currentTime = savedTime;
-        }
-      });
-
-      const storeMusicTime = () => {
-        sessionStorage.setItem(MUSIC_TIME_KEY, String(bgMusic.currentTime || 0));
-      };
-
-      const tryPlayMusic = () => {
-        bgMusic.play()
-          .then(() => { localStorage.setItem(MUSIC_ALLOWED_KEY, "yes"); })
-          .catch(() => {});
-      };
-
-      bgMusic.addEventListener("timeupdate", storeMusicTime);
-      window.addEventListener("beforeunload", storeMusicTime);
-
-      ["click", "change", "keydown", "touchstart"].forEach((e) => {
-        window.addEventListener(e, tryPlayMusic, { once: true });
-      });
-
-      if (localStorage.getItem(MUSIC_ALLOWED_KEY) === "yes") tryPlayMusic();
-      window.addEventListener("load", tryPlayMusic, { once: true });
-    }
-
     function gotoGallery() {
       telegramLog("🌸 Hoş geldin sayfasından geçti, galeriye gidiyor.");
-      sessionStorage.setItem(MUSIC_TIME_KEY, String(bgMusic.currentTime || 0));
       window.location.href = "anilarimiz.html";
     }
-
-    setupBackgroundMusic();
 
     // Birliktelik sayacı — 12 Mart 2025
     (function() {

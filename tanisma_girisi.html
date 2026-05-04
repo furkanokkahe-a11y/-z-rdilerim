@@ -376,7 +376,6 @@
   </style>
 </head>
 <body>
-  <audio id="bg-music" loop preload="auto" src="assets/audio/arka-plan.mp3"></audio>
   <div id="hearts-canvas" aria-hidden="true"></div>
   <main class="shell">
     <section class="hero">
@@ -422,14 +421,11 @@
     const CORRECT_DAY = "12";
     const CORRECT_MONTH = "3";
     const STORAGE_KEY = "tanisma-girisi-izin";
-    const MUSIC_TIME_KEY = "site-music-time";
-    const MUSIC_ALLOWED_KEY = "site-music-allowed";
 
     const daySelect = document.getElementById("day-select");
     const monthSelect = document.getElementById("month-select");
     const unlockButton = document.getElementById("unlock-btn");
     const messageBox = document.getElementById("message-box");
-    const bgMusic = document.getElementById("bg-music");
 
     const months = [
       { value: "1", label: "Ocak" },
@@ -492,45 +488,8 @@
       showMessage("error", "Bu tarih doğru değil. Bir kez daha düşün ve tekrar dene.");
     }
 
-    function setupBackgroundMusic() {
-      const savedTime = Number(sessionStorage.getItem(MUSIC_TIME_KEY) || "0");
-      bgMusic.volume = 0.4;
-
-      bgMusic.addEventListener("loadedmetadata", () => {
-        if (savedTime > 0 && savedTime < bgMusic.duration) {
-          bgMusic.currentTime = savedTime;
-        }
-      });
-
-      const storeMusicTime = () => {
-        sessionStorage.setItem(MUSIC_TIME_KEY, String(bgMusic.currentTime || 0));
-      };
-
-      const tryPlayMusic = () => {
-        bgMusic.play()
-          .then(() => {
-            localStorage.setItem(MUSIC_ALLOWED_KEY, "yes");
-          })
-          .catch(() => {});
-      };
-
-      bgMusic.addEventListener("timeupdate", storeMusicTime);
-      window.addEventListener("beforeunload", storeMusicTime);
-
-      ["click", "change", "keydown", "touchstart"].forEach((eventName) => {
-        window.addEventListener(eventName, tryPlayMusic, { once: true });
-      });
-
-      if (localStorage.getItem(MUSIC_ALLOWED_KEY) === "yes") {
-        tryPlayMusic();
-      }
-
-      window.addEventListener("load", tryPlayMusic, { once: true });
-    }
-
     populateDayOptions();
     populateMonthOptions();
-    setupBackgroundMusic();
 
     unlockButton.addEventListener("click", validateAnswer);
 
