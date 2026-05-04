@@ -1,534 +1,316 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bizim Tarihimiz</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #fff5f3;
-      --bg-soft: #f4d9d2;
-      --panel: rgba(255, 250, 248, 0.76);
-      --panel-strong: rgba(255, 255, 255, 0.9);
-      --ink: #2f1d22;
-      --muted: #83646a;
-      --line: rgba(90, 44, 57, 0.12);
-      --accent: #c76c83;
-      --accent-deep: #9f4f65;
-      --accent-soft: rgba(199, 108, 131, 0.12);
-      --success: #2f8f6b;
-      --danger: #ac4c55;
-      --shadow: 0 28px 80px rgba(122, 58, 75, 0.17);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: "Manrope", sans-serif;
-      color: var(--ink);
-      background:
-        radial-gradient(circle at top left, rgba(255, 255, 255, 0.95), transparent 28%),
-        radial-gradient(circle at bottom right, rgba(199, 108, 131, 0.16), transparent 32%),
-        linear-gradient(135deg, var(--bg) 0%, var(--bg-soft) 100%);
-      display: grid;
-      place-items: center;
-      padding: 24px;
-      overflow-x: hidden;
-    }
-
-    body::before,
-    body::after {
-      content: "";
-      position: fixed;
-      border-radius: 999px;
-      filter: blur(12px);
-      pointer-events: none;
-    }
-
-    body::before {
-      width: 320px;
-      height: 320px;
-      top: -100px;
-      right: -60px;
-      background: rgba(255, 255, 255, 0.5);
-    }
-
-    body::after {
-      width: 240px;
-      height: 240px;
-      left: -40px;
-      bottom: -40px;
-      background: rgba(199, 108, 131, 0.18);
-    }
-
-    .shell {
-      width: min(820px, 100%);
-      display: grid;
-      grid-template-columns: 1.05fr 0.95fr;
-      border-radius: 34px;
-      overflow: hidden;
-      background: var(--panel);
-      border: 1px solid rgba(255, 255, 255, 0.5);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(20px);
-      position: relative;
-      z-index: 1;
-    }
-
-    .hero {
-      position: relative;
-      padding: 38px 34px;
-      color: #fff9fb;
-      background:
-        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.18), transparent 24%),
-        linear-gradient(160deg, rgba(74, 24, 44, 0.98) 0%, rgba(154, 76, 101, 0.9) 58%, rgba(226, 147, 171, 0.84) 110%);
-      isolation: isolate;
-    }
-
-    .hero::before,
-    .hero::after {
-      content: "";
-      position: absolute;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.08);
-      z-index: -1;
-    }
-
-    .hero::before {
-      width: 260px;
-      height: 260px;
-      top: -100px;
-      right: -70px;
-    }
-
-    .hero::after {
-      width: 230px;
-      height: 230px;
-      left: -50px;
-      bottom: -90px;
-    }
-
-    .tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 14px;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      background: rgba(255, 255, 255, 0.1);
-      font-size: 11px;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      font-weight: 700;
-    }
-
-    .tag::before {
-      content: "";
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #ffd7e1;
-      box-shadow: 0 0 0 8px rgba(255, 215, 225, 0.08);
-    }
-
-    h1 {
-      margin: 16px 0 12px;
-      font-family: "Cormorant Garamond", serif;
-      font-size: clamp(36px, 5vw, 58px);
-      line-height: 0.92;
-      letter-spacing: -0.06em;
-      max-width: 8ch;
-    }
-
-    .hero-copy {
-      max-width: 500px;
-      margin: 0;
-      font-size: 13px;
-      line-height: 1.7;
-      color: rgba(255, 249, 251, 0.84);
-    }
-
-    .auth-panel {
-      padding: 28px 26px;
-      background: rgba(255, 250, 248, 0.82);
-      display: flex;
-      align-items: center;
-    }
-
-    .flow-card {
-      width: 100%;
-      padding: 22px 20px;
-      border-radius: 24px;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 248, 247, 0.84) 100%);
-      border: 1px solid rgba(255, 255, 255, 0.65);
-      box-shadow: 0 18px 40px rgba(122, 58, 75, 0.08);
-    }
-
-    .step-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 16px;
-      padding: 7px 12px;
-      border-radius: 999px;
-      background: var(--accent-soft);
-      color: var(--accent-deep);
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      font-weight: 700;
-    }
-
-    .step-label::before {
-      content: "";
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--accent);
-    }
-
-    h2 {
-      margin: 0 0 8px;
-      font-size: 24px;
-      letter-spacing: -0.05em;
-    }
-
-    .lead {
-      margin: 0 0 16px;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.7;
-      max-width: 38ch;
-    }
-
-    .field-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .field {
-      margin-bottom: 10px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 8px;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-
-    select,
-    button {
-      width: 100%;
-      border-radius: 18px;
-      border: 1px solid var(--line);
-      font: inherit;
-    }
-
-    select {
-      appearance: none;
-      padding: 11px 14px;
-      background: var(--panel-strong);
-      color: var(--ink);
-      outline: none;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
-      transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
-    }
-
-    select:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 4px rgba(199, 108, 131, 0.14);
-      transform: translateY(-1px);
-    }
-
-    button {
-      margin-top: 6px;
-      padding: 12px 16px;
-      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
-      color: #fff;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 16px 30px rgba(159, 79, 101, 0.2);
-      transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
-    }
-
-    button:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 22px 34px rgba(159, 79, 101, 0.24);
-      filter: saturate(1.04);
-    }
-
-    .message {
-      display: none;
-      margin-top: 14px;
-      padding: 14px 16px;
-      border-radius: 18px;
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    .message.show {
-      display: block;
-      animation: rise 0.24s ease;
-    }
-
-    .message.error {
-      background: rgba(172, 76, 85, 0.1);
-      border: 1px solid rgba(172, 76, 85, 0.18);
-      color: var(--danger);
-    }
-
-    @keyframes rise {
-      from {
-        opacity: 0;
-        transform: translateY(8px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @media (max-width: 600px) {
-      .shell {
-        grid-template-columns: 1fr;
-      }
-
-      .hero,
-      .auth-panel {
-        padding: 26px 18px;
-      }
-    }
-
-    @media (max-width: 560px) {
-      body {
-        padding: 14px;
-      }
-
-      .flow-card {
-        padding: 22px;
-      }
-
-      .field-row {
-        grid-template-columns: 1fr;
-      }
-
-      h1 {
-        font-size: 56px;
-      }
-
-      h2 {
-        font-size: 28px;
-      }
-    }
-
-    /* ── floating hearts ── */
-    #hearts-canvas {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      overflow: hidden;
-    }
-
-    .hrt {
-      position: absolute;
-      bottom: -50px;
-      opacity: 0;
-      animation: floatHeart linear infinite;
-      user-select: none;
-      line-height: 1;
-    }
-
-    @keyframes floatHeart {
-      0%   { transform: translateY(0)      rotate(-12deg); opacity: 0;    }
-      8%   {                                                opacity: 0.48; }
-      88%  {                                                opacity: 0.2;  }
-      100% { transform: translateY(-108vh) rotate(12deg);  opacity: 0;    }
-    }
-
-    main { position: relative; z-index: 1; }
-
-    .hero-hearts {
-      position: absolute;
-      inset: 0;
-      overflow: hidden;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .hero > *:not(.hero-hearts) {
-      position: relative;
-      z-index: 1;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giriş</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Manrope:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/styles.css">
 </head>
-<body>
-  <div id="hearts-canvas" aria-hidden="true"></div>
-  <main class="shell">
-    <section class="hero">
-      <div class="hero-hearts" aria-hidden="true"></div>
-      <div class="tag">Sadece bize ait</div>
-      <h1>Bir tarihi hatırla, gerisi açılsın.</h1>
-      <p class="hero-copy">
-        Bazen tek bir gün, koskoca bir hikâyeyi içinde saklar.
-        Bizim kapımız da o güne açılıyor.
-      </p>
-    </section>
+<body data-notice-title="Giris sayfasi" data-notice-message="Dogru gun ve ayi secmen gerekiyor. Sayaç bitene kadar site acilmaz.">
+    <audio data-autoplay-audio preload="auto" autoplay playsinline loop>
+        <source src="assets/audio/2.mp3" type="audio/mpeg">
+    </audio>
 
-    <section class="auth-panel">
-      <div class="flow-card">
-        <div class="step-label">İlk adım</div>
-        <h2>Tanışma tarihimiz?</h2>
-        <p class="lead">Sadece ikimizin bildiği günü seç.</p>
+    <div class="site-shell gate-shell">
+        <header class="topbar gate-topbar">
+            <a class="brand" href="tanisma_girisi.html">
+                <span class="brand-mark">O</span>
+                <span>özür sitesi</span>
+            </a>
+            <nav class="nav" data-site-nav hidden>
+                <a href="#ana-sayfa" data-route-link="ana-sayfa">Ana sayfa</a>
+                <a href="#ozur" data-route-link="ozur">Özür</a>
+                <a href="#anilar" data-route-link="anilar">Anılar</a>
+                <a href="#gelecek" data-route-link="gelecek">Gelecek</a>
+                <a href="#video" data-route-link="video">Video</a>
+            </nav>
+        </header>
 
-        <div class="field-row">
-          <div class="field">
-            <label for="day-select">Gün</label>
-            <select id="day-select">
-              <option value="">Gün seç</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="month-select">Ay</label>
-            <select id="month-select">
-              <option value="">Ay seç</option>
-            </select>
-          </div>
-        </div>
+        <main>
+            <section class="gate-layout" data-gate-panel>
+                <article class="glass-card gate-card">
+                    <p class="eyebrow">Giriş sayfası</p>
+                    <h1>Önce tarihi doğru seç, sonra içeri gir.</h1>
+                    <p class="lead narrow">
+                        Giris icin sadece gun ve ay sececeksin. Dogru secim yapsan bile bu ayin 11'i saat 23:30 olmadan site acilmayacak.
+                    </p>
 
-        <button id="unlock-btn" type="button">Devam Et</button>
-        <div class="message" id="message-box" aria-live="polite"></div>
+                    <form class="gate-form" data-entry-form>
+                        <label class="field">
+                            <span>Gun</span>
+                            <select name="day" required>
+                                <option value="">Gun sec</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                                <option value="13">13</option>
+                                <option value="14">14</option>
+                                <option value="15">15</option>
+                                <option value="16">16</option>
+                                <option value="17">17</option>
+                                <option value="18">18</option>
+                                <option value="19">19</option>
+                                <option value="20">20</option>
+                                <option value="21">21</option>
+                                <option value="22">22</option>
+                                <option value="23">23</option>
+                                <option value="24">24</option>
+                                <option value="25">25</option>
+                                <option value="26">26</option>
+                                <option value="27">27</option>
+                                <option value="28">28</option>
+                                <option value="29">29</option>
+                                <option value="30">30</option>
+                                <option value="31">31</option>
+                            </select>
+                        </label>
 
-      </div>
-    </section>
-  </main>
+                        <label class="field">
+                            <span>Ay</span>
+                            <select name="month" required>
+                                <option value="">Ay sec</option>
+                                <option value="ocak">Ocak</option>
+                                <option value="subat">Subat</option>
+                                <option value="mart">Mart</option>
+                                <option value="nisan">Nisan</option>
+                                <option value="mayis">Mayis</option>
+                                <option value="haziran">Haziran</option>
+                                <option value="temmuz">Temmuz</option>
+                                <option value="agustos">Agustos</option>
+                                <option value="eylul">Eylul</option>
+                                <option value="ekim">Ekim</option>
+                                <option value="kasim">Kasim</option>
+                                <option value="aralik">Aralik</option>
+                            </select>
+                        </label>
 
-  <script src="assets/tracker.js"></script>
-  <script>
-    const CORRECT_DAY = "12";
-    const CORRECT_MONTH = "3";
-    const STORAGE_KEY = "tanisma-girisi-izin";
+                        <button class="button button-primary" type="submit">Giris yap</button>
+                        <p class="gate-feedback" data-entry-feedback aria-live="polite"></p>
+                    </form>
 
-    const daySelect = document.getElementById("day-select");
-    const monthSelect = document.getElementById("month-select");
-    const unlockButton = document.getElementById("unlock-btn");
-    const messageBox = document.getElementById("message-box");
+                    <section class="countdown-panel" data-countdown-panel>
+                        <p class="panel-label">Sayaç</p>
+                        <p class="countdown-value" data-countdown-value>Hazirlaniyor...</p>
+                        <p class="countdown-note" data-countdown-note>Bu ayin 11'i saat 23:30 dolmadan kilit kalkmaz.</p>
+                    </section>
 
-    const months = [
-      { value: "1", label: "Ocak" },
-      { value: "2", label: "Şubat" },
-      { value: "3", label: "Mart" },
-      { value: "4", label: "Nisan" },
-      { value: "5", label: "Mayıs" },
-      { value: "6", label: "Haziran" },
-      { value: "7", label: "Temmuz" },
-      { value: "8", label: "Ağustos" },
-      { value: "9", label: "Eylül" },
-      { value: "10", label: "Ekim" },
-      { value: "11", label: "Kasım" },
-      { value: "12", label: "Aralık" }
-    ];
+                    <section class="gate-love-note">
+                        <p class="panel-label">Kucuk not</p>
+                        <p>
+                            aybüşüm seni çok seviyorum. biliyorum sen de seviyorsun ama karşı koyuyorsun kendine.. hediyemi aldığında mutlu olmanı cok isterim ya video ceker misin ?
+                        </p>
+                    </section>
 
-    function populateDayOptions() {
-      for (let day = 1; day <= 31; day += 1) {
-        const option = document.createElement("option");
-        option.value = String(day);
-        option.textContent = String(day);
-        daySelect.appendChild(option);
-      }
-    }
+                    <div class="reaction-row" aria-label="Tepki secenekleri">
+                        <button class="reaction-btn" type="button" data-reaction="😒 Nefret">😒 Nefret</button>
+                        <button class="reaction-btn" type="button" data-reaction="💗 Guzel">💗 Guzel</button>
+                        <button class="reaction-btn" type="button" data-reaction="👀 Merak">👀 Merak</button>
+                    </div>
 
-    function populateMonthOptions() {
-      months.forEach((month) => {
-        const option = document.createElement("option");
-        option.value = month.value;
-        option.textContent = month.label;
-        monthSelect.appendChild(option);
-      });
-    }
+                    <p class="reaction-copy" data-reaction-output aria-live="polite">Istersen asagidan bir emoji tepki birak.</p>
+                </article>
 
-    function showMessage(type, text) {
-      messageBox.className = "message show " + type;
-      messageBox.textContent = text;
-    }
+                <aside class="glass-card gate-side">
+                    <p class="panel-label">İpucu</p>
+                    <h2>Dogru gun ve ayi sec.</h2>
+                    <p>
+                        Bak aybüşüm, güzelim, açkım, burayı senin için kodladım ama kapıyı hemen açmıyorum. Çünkü artık acele edip seni darlamayacağım. Rahat rahat çalış, kafan rahat olsun diye bu siteyi 7 gün sonraya mühürledim. O gün geldiğinde, o 13 aylık sarsılmaz dediğimiz kalenin hatırına buraya bir bakmanı isteyeceğim. O zamana kadar sadece huzurla kal, ben buralardayım.
+                    </p>
+                </aside>
+            </section>
 
-    function unlock() {
-      telegramLog("✅ Doğru tarihi girdi! Siteye erişim sağlandı 🎉");
-      localStorage.setItem(STORAGE_KEY, "ok");
-      window.location.href = "hosgeldin.html";
-    }
+            <div class="app-shell" data-app-shell hidden>
+                <section class="page-view" data-view="ana-sayfa" data-notice-title="Yeni bildirim" data-notice-message="Bu sayfa sadece giriş değil; devamında söylemek istediğim her şey var.">
+                    <section class="hero">
+                        <div class="hero-copy">
+                            <p class="eyebrow">Bazen doğrudan söylemek gerekir</p>
+                            <h1>Kırdığım şeyi küçültmeden, gerçekten toparlamak için.</h1>
+                            <p class="lead">
+                                Bu site lafı uzatmak için değil; açık konuşmak, hatayı kabul etmek ve sadece "özür dilerim"
+                                deyip geçmediğimi göstermek için hazırlandı.
+                            </p>
+                            <div class="hero-actions">
+                                <a class="button button-primary" href="#ozur">Özür sayfasını aç</a>
+                                <a class="button button-secondary" href="#anilar">Neyi önemsediğimi gör</a>
+                                <a class="button button-secondary" href="#video">Videoyu izle</a>
+                            </div>
+                        </div>
+                        <aside class="hero-panel glass-card">
+                            <p class="panel-label">Kısa özet</p>
+                            <ul class="bullet-list">
+                                <li>Hata kabul edildi.</li>
+                                <li>Bahane üretilmedi.</li>
+                                <li>Her sayfada küçük bir bildirim var.</li>
+                                <li>Sonunda net bir telafi sözü var.</li>
+                            </ul>
+                        </aside>
+                    </section>
 
-    function validateAnswer() {
-      if (!daySelect.value || !monthSelect.value) {
-        showMessage("error", "Devam etmek için önce gün ve ay seçmelisin.");
-        return;
-      }
+                    <section class="grid-section">
+                        <article class="glass-card feature-card accent-coral">
+                            <p class="card-kicker">01</p>
+                            <h2>Kaçmak yerine açıklık</h2>
+                            <p>
+                                Hatanın üstünü örtmek yerine, etkisini kabul eden ve karşı tarafın hislerini merkeze alan bir dil.
+                            </p>
+                        </article>
+                        <article class="glass-card feature-card accent-amber">
+                            <p class="card-kicker">02</p>
+                            <h2>Geçmişin değeri</h2>
+                            <p>
+                                Sadece yapılan yanlışa değil, daha önce kurulmuş güzel şeylere de bakıp neden telafi etmek istediğini anlatan bir alan.
+                            </p>
+                        </article>
+                        <article class="glass-card feature-card accent-blue">
+                            <p class="card-kicker">03</p>
+                            <h2>Söz yerine plan</h2>
+                            <p>
+                                Gelecek sayfasında boş vaat yok; tekrar etmemek için somut duruş ve davranış listesi var.
+                            </p>
+                        </article>
+                    </section>
+                </section>
 
-      if (daySelect.value === CORRECT_DAY && monthSelect.value === CORRECT_MONTH) {
-        unlock();
-        return;
-      }
+                <section class="page-view" data-view="ozur" data-notice-title="Yeni bildirim" data-notice-message="Burada bahane yok; sadece net bir özür ve sorumluluk var." hidden>
+                    <section class="page-hero glass-card">
+                        <p class="eyebrow">Asıl konu burada</p>
+                        <h1>Seni kırdığım için gerçekten üzgünüm.</h1>
+                        <p class="lead narrow">
+                            Söylenmesi gereken şeyi ertelemek sadece daha fazla ağırlık oluşturuyor. Yaptığımın etkisini anlıyorum ve bunu
+                            ciddiye alıyorum. O yüzden bu sayfa, savunma yapmak için değil sorumluluk almak için burada.
+                        </p>
+                    </section>
 
-      var gunAdi = daySelect.value || "?";
-      var ayAdi  = monthSelect.options[monthSelect.selectedIndex] ? monthSelect.options[monthSelect.selectedIndex].text : (monthSelect.value || "?");
-      telegramLog("❌ Yanlış tarih denedi: " + gunAdi + " " + ayAdi);
-      showMessage("error", "Bu tarih doğru değil. Bir kez daha düşün ve tekrar dene.");
-    }
+                    <section class="split-section">
+                        <article class="glass-card prose-card">
+                            <h2>Neyi kabul ediyorum?</h2>
+                            <p>
+                                Yanlış yaptım. Seni kıran şeyin büyüklüğünü sadece kendi niyetimle küçültemem. Etkisi nasılsa gerçek olan o.
+                            </p>
+                            <p>
+                                Bu yüzden açıklama yaparken bile merkezde ben değil, senin yaşadığın şey var. Orayı görmeden kurulacak her cümle eksik kalır.
+                            </p>
+                        </article>
+                        <article class="glass-card prose-card">
+                            <h2>Neyi yapmayacağım?</h2>
+                            <p>
+                                "Öyle demek istemedim", "abartıldı", "ama sen de" gibi cümlelerin arkasına saklanmayacağım.
+                            </p>
+                            <p>
+                                Özrün değeri, sorumluluğu ne kadar açık taşıdığıyla ölçülür. O yüzden burada kaçış cümlesi yok.
+                            </p>
+                        </article>
+                    </section>
 
-    populateDayOptions();
-    populateMonthOptions();
+                    <section class="quote-panel">
+                        <blockquote>
+                            Keşke hiç kırmasaydım. Ama şimdi, kırdığım yerin ağırlığını taşıyıp düzeltmek için buradayım.
+                        </blockquote>
+                    </section>
+                </section>
 
-    unlockButton.addEventListener("click", validateAnswer);
+                <section class="page-view" data-view="anilar" data-notice-title="Yeni bildirim" data-notice-message="Bazı şeyler sadece özür için değil, değer verdiğin için hatırlanır." hidden>
+                    <section class="page-hero glass-card">
+                        <p class="eyebrow">Neden önemli?</p>
+                        <h1>Sıradan bir şey değildi, o yüzden düzeltmek istiyorum.</h1>
+                        <p class="lead narrow">
+                            Bazen insan sadece hatasını değil, kaybetmek istemediği şeyi de söylemeli. Bu sayfa onun için var.
+                        </p>
+                    </section>
 
-    // hero hearts
-    (function () {
-      document.querySelectorAll(".hero-hearts").forEach(function (c) {
-        var col = ["rgba(255,220,225,0.55)","rgba(255,200,210,0.45)","rgba(255,240,244,0.5)","rgba(255,180,195,0.4)"];
-        var sz  = [10, 14, 18, 12, 16, 9, 20];
-        for (var i = 0; i < 16; i++) {
-          var s = document.createElement("span");
-          s.className = "hrt";
-          s.textContent = "\u2665";
-          s.style.left              = (Math.random() * 100) + "%";
-          s.style.fontSize          = sz[i % sz.length] + "px";
-          s.style.color             = col[i % col.length];
-          s.style.animationDuration = (7 + Math.random() * 10) + "s";
-          s.style.animationDelay    = (Math.random() * 12) + "s";
-          c.appendChild(s);
-        }
-      });
-    }());
+                    <section class="timeline">
+                        <article class="glass-card timeline-card">
+                            <span class="timeline-dot"></span>
+                            <p class="timeline-date">İlk rahat an</p>
+                            <h2>Konuşurken zamanın hafiflemesi</h2>
+                            <p>
+                                Her şeyin daha kolay geldiği, cümle kurmak için ekstra çaba gerekmediği anlar sıradan olmuyor.
+                            </p>
+                        </article>
+                        <article class="glass-card timeline-card">
+                            <span class="timeline-dot"></span>
+                            <p class="timeline-date">En net his</p>
+                            <h2>Yanında daha dikkatli biri olmak istemek</h2>
+                            <p>
+                                Değer verdiğin biri olduğunda davranışların değişir. Buradaki telafi isteğinin sebebi de tam olarak bu.
+                            </p>
+                        </article>
+                        <article class="glass-card timeline-card">
+                            <span class="timeline-dot"></span>
+                            <p class="timeline-date">Bugün</p>
+                            <h2>Geriye dönüp bakınca küçülmeyen şey</h2>
+                            <p>
+                                Hata yapılmış olması, güzel olanı silmiyor. Tam tersine neden düzgün davranmak gerektiğini daha da net gösteriyor.
+                            </p>
+                        </article>
+                    </section>
+                </section>
 
-    // hearts
-    (function () {
-      var c = document.getElementById("hearts-canvas");
-      var col = ["#e07389","#d45e77","#f2a9b5","#c96a80","#f7c2cb","#ba4f68","#e89aaa"];
-      var sz  = [13, 17, 21, 26, 11, 16, 20, 24];
-      for (var i = 0; i < 22; i++) {
-        var s = document.createElement("span");
-        s.className = "hrt";
-        s.textContent = "\u2665";
-        s.style.left              = (Math.random() * 100) + "%";
-        s.style.fontSize          = sz[i % sz.length] + "px";
-        s.style.color             = col[i % col.length];
-        s.style.animationDuration = (9 + Math.random() * 12) + "s";
-        s.style.animationDelay    = (Math.random() * 15) + "s";
-        c.appendChild(s);
-      }
-    }());
-  </script>
+                <section class="page-view" data-view="gelecek" data-notice-title="Yeni bildirim" data-notice-message="Söz kısmı burada bitmiyor; bundan sonrası davranış tarafı." hidden>
+                    <section class="page-hero glass-card">
+                        <p class="eyebrow">Telafi planı</p>
+                        <h1>Aynı kırığı tekrar oluşturmamak için.</h1>
+                        <p class="lead narrow">
+                            Özür bir başlangıçsa, bundan sonrası ancak davranışla anlam kazanır. O yüzden burada net bir duruş var.
+                        </p>
+                    </section>
+
+                    <section class="promise-grid">
+                        <article class="glass-card promise-card">
+                            <h2>Daha dikkatli iletişim</h2>
+                            <p>Savunmaya geçmeden önce durup dinlemek, yanlış anı büyütmeden önce anlamak.</p>
+                        </article>
+                        <article class="glass-card promise-card">
+                            <h2>Tekrarlamayan tavır</h2>
+                            <p>Bugün kurulan cümlelerin yarın davranışta görünmesi; özrü tek seferlik gösteriye çevirmemek.</p>
+                        </article>
+                        <article class="glass-card promise-card">
+                            <h2>Açık kapı bırakmak</h2>
+                            <p>Karşı tarafın alanına saygı duymak ama ihtiyaç olduğunda konuşmak için dürüstçe hazır olmak.</p>
+                        </article>
+                    </section>
+
+                    <section class="closing-note glass-card">
+                        <p class="panel-label">Son cümle</p>
+                        <p>
+                            Bu sitenin amacı baskı kurmak değil. Sadece, özrün lafta kalmadığını düzenli, açık ve saygılı bir şekilde göstermek.
+                        </p>
+                    </section>
+                </section>
+
+                <section class="page-view" data-view="video" data-notice-title="Video sayfası" data-notice-message="Bu sayfada arka plan müziği durur; videodan çıkınca yeniden devam eder." hidden>
+                    <section class="page-hero glass-card">
+                        <p class="eyebrow">Ayrı sayfa</p>
+                        <h1>Bu video burada izlenebilir.</h1>
+                        <p class="lead narrow">
+                            Bu sayfa acildiginda arka plan muzigi durur. Diger sayfalara gectiginde muzik kaldigi yerden yeniden devam eder.
+                        </p>
+                    </section>
+
+                    <section class="glass-card video-card">
+                        <video class="video-player" data-route-video controls playsinline preload="metadata">
+                            <source src="assets/video/sequence1-recompressed.mp4" type="video/mp4">
+                            Tarayicin video etiketini desteklemiyor.
+                        </video>
+                    </section>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="assets/tracker.js"></script>
+    <script src="assets/app.js"></script>
 </body>
 </html>
