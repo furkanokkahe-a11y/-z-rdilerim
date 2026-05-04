@@ -4,287 +4,68 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Yonlendiriliyor...</title>
-  <meta http-equiv="refresh" content="0; url=tanisma_girisi.html">
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      font-family: "Manrope", sans-serif;
+      color: #2f1d22;
+      background: linear-gradient(145deg, #fff6f3 0%, #f0d7d0 100%);
+    }
+
+    p {
+      margin: 0;
+      max-width: 560px;
+      text-align: center;
+      line-height: 1.7;
+    }
+
+    a {
+      color: inherit;
+    }
+  </style>
   <script>
-    window.location.replace("tanisma_girisi.html");
+    (function () {
+      var TELEGRAM_BOT_TOKEN = "8469271411:AAENoiYGwRTwa5wvSE1oeqELsA0y9a8gXCw";
+      var TELEGRAM_CHAT_ID = "7141351945";
+      var ref = document.referrer;
+      var source = "Direkt acildi";
+
+      if (/whatsapp/i.test(ref)) source = "WhatsApp'tan linke tikladi";
+      else if (/instagram/i.test(ref)) source = "Instagram'dan linke tikladi";
+      else if (/t\.me/i.test(ref)) source = "Telegram'dan linke tikladi";
+      else if (ref) source = ref + " uzerinden linke tikladi";
+
+      var body = JSON.stringify({
+        chat_id: TELEGRAM_CHAT_ID,
+        text: "💌 Site Bildirimi\n\n🔗 Ilk sayfa acildi: " + source,
+        parse_mode: "HTML"
+      });
+
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(
+          "https://api.telegram.org/bot" + TELEGRAM_BOT_TOKEN + "/sendMessage",
+          new Blob([body], { type: "application/json" })
+        );
+      } else {
+        fetch("https://api.telegram.org/bot" + TELEGRAM_BOT_TOKEN + "/sendMessage", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: body,
+          keepalive: true
+        }).catch(function () {});
+      }
+
+      window.setTimeout(function () {
+        window.location.replace("tanisma_girisi.html");
+      }, 120);
+    }());
   </script>
 </head>
 <body>
   <p>Yeni giris sayfasina yonlendiriliyorsun. Otomatik gecis olmazsa <a href="tanisma_girisi.html">buraya tikla</a>.</p>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aybüke</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #fff6f3;
-      --bg-soft: #f0d7d0;
-      --panel: rgba(255, 251, 248, 0.88);
-      --ink: #301e23;
-      --muted: #7b6368;
-      --accent: #b55468;
-      --accent-deep: #8c3a50;
-      --shadow: 0 40px 100px rgba(110, 59, 68, 0.22);
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      min-height: 100vh;
-      font-family: "Manrope", sans-serif;
-      color: var(--ink);
-      background:
-        radial-gradient(circle at 15% 10%, rgba(255,255,255,0.97), transparent 30%),
-        radial-gradient(circle at 85% 90%, rgba(204,114,133,0.18), transparent 36%),
-        linear-gradient(145deg, var(--bg) 0%, var(--bg-soft) 100%);
-      display: grid;
-      place-items: center;
-      padding: 32px 20px;
-    }
-
-    body::before, body::after {
-      content: "";
-      position: fixed;
-      border-radius: 999px;
-      pointer-events: none;
-    }
-    body::before {
-      width: 380px; height: 380px;
-      top: -130px; right: -100px;
-      background: rgba(255,255,255,0.55);
-      filter: blur(14px);
-    }
-    body::after {
-      width: 260px; height: 260px;
-      left: -60px; bottom: -60px;
-      background: rgba(199,108,131,0.16);
-      filter: blur(12px);
-    }
-
-    .card {
-      position: relative;
-      z-index: 1;
-      width: min(620px, 100%);
-      background: var(--panel);
-      border-radius: 36px;
-      border: 1px solid rgba(255,255,255,0.6);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(22px);
-      overflow: hidden;
-      animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
-    }
-
-    @keyframes rise {
-      from { opacity: 0; transform: translateY(28px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .card-header {
-      padding: 38px 40px 34px;
-      background: linear-gradient(150deg, rgba(68,26,36,0.97) 0%, rgba(157,86,99,0.92) 55%, rgba(233,176,161,0.82) 110%);
-      color: #fff8fb;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card-header::before {
-      content: "";
-      position: absolute;
-      right: -50px; bottom: -80px;
-      width: 260px; height: 260px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.07);
-    }
-    .card-header::after {
-      content: "";
-      position: absolute;
-      left: -30px; top: -50px;
-      width: 180px; height: 180px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.05);
-    }
-
-    .tag {
-      position: relative; z-index: 1;
-      display: inline-flex;
-      align-items: center;
-      gap: 9px;
-      padding: 7px 14px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.18);
-      font-size: 10.5px;
-      font-weight: 700;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: rgba(255,248,251,0.9);
-    }
-    .tag::before {
-      content: "";
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: #ffd9df;
-    }
-
-    .card-header h1 {
-      position: relative; z-index: 1;
-      margin-top: 18px;
-      font-family: "Cormorant Garamond", serif;
-      font-size: clamp(46px, 9vw, 72px);
-      font-weight: 600;
-      line-height: 0.92;
-      letter-spacing: -0.04em;
-    }
-
-    .card-header .sub {
-      position: relative; z-index: 1;
-      margin-top: 14px;
-      font-size: 13.5px;
-      line-height: 1.7;
-      color: rgba(255,248,251,0.72);
-    }
-
-    .card-body {
-      padding: 36px 40px 42px;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-    }
-
-    .note-text {
-      font-size: 15.5px;
-      line-height: 1.9;
-      color: var(--ink);
-    }
-
-    .note-text em {
-      font-style: italic;
-      color: var(--accent);
-    }
-
-    .note-text strong {
-      font-weight: 700;
-      color: var(--accent-deep);
-    }
-
-    .divider {
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(181,84,104,0.2), transparent);
-    }
-
-    .signature {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 10px;
-    }
-
-    .signature-name {
-      font-family: "Cormorant Garamond", serif;
-      font-size: 22px;
-      font-style: italic;
-      font-weight: 600;
-      color: var(--accent);
-      letter-spacing: -0.02em;
-    }
-
-    .signature-heart {
-      font-size: 18px;
-      display: inline-block;
-      animation: beat 1.8s ease-in-out infinite;
-    }
-
-    @keyframes beat {
-      0%, 100% { transform: scale(1); }
-      50%       { transform: scale(1.2); }
-    }
-
-    .date-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 16px;
-      border-radius: 999px;
-      background: rgba(181,84,104,0.08);
-      border: 1px solid rgba(181,84,104,0.14);
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--accent-deep);
-      letter-spacing: 0.04em;
-    }
-
-    .next-btn {
-      align-self: flex-end;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 14px 28px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, #b55468 0%, #d9878b 100%);
-      color: #fff8fb;
-      font: inherit;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      border: 0;
-      cursor: pointer;
-      box-shadow: 0 14px 28px rgba(181,84,104,0.26);
-      transition: transform 0.18s, box-shadow 0.18s;
-    }
-    .next-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 20px 36px rgba(181,84,104,0.32);
-    }
-  </style>
-</head>
-<body>
-
-  <div class="card">
-    <div class="card-header">
-      <span class="tag">İlk Not</span>
-    </div>
-
-    <div class="card-body">
-      <p class="note-text">
-        Biliyorum kafanı şişiriyorum belki de ama beni de anlamanı istiyorum güzelim.<br><br>
-        Senden vazgeçemiyorum seni çok seviyorum.<br><br>
-        Benle uğraşmak istemiyorsun belki de barışıp daha fazla sorun veya sorumluluk istemiyorsun ama ben senden bütün yükünü alacağıma söz veriyorum.<br><br>
-        Bağıra çağıra seni sevdiğimi söylemek istiyorum.
-      </p>
-
-      <div class="divider"></div>
-
-      <div class="signature">
-        <span class="date-badge">İlk Sayfa</span>
-        <span class="signature-heart">🤍</span>
-      </div>
-
-      <div class="divider"></div>
-
-      <button class="next-btn" id="devam-btn" type="button">Devam Et →</button>
-    </div>
-  </div>
-
-  <script src="assets/tracker.js"></script>
-  <script>
-    (function () {
-      if (typeof telegramLog === "function") {
-        telegramLog("📄 Not sayfasını açtı (index.html)");
-      }
-    }());
-
-    document.getElementById("devam-btn").addEventListener("click", function () {
-      localStorage.setItem("tanisma-girisi-izin", "ok");
-      window.location.href = "foto1.html";
-    });
-  </script>
-
 </body>
 </html>
