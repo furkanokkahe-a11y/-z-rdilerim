@@ -1,6 +1,10 @@
 import tempfile
 import unittest
 from pathlib import Path
+import sys
+from types import ModuleType
+from unittest.mock import patch
+from uuid import UUID
 
 import pandas as pd
 
@@ -294,6 +298,92 @@ class GibFaturaHelperTests(unittest.TestCase):
         self.assertEqual(len(matches), 1)
         self.assertEqual(matches[0][0], 7)
         self.assertEqual(matches[0][1]["onay_durumu"], "Onaylanmadı")
+
+    def test_ensure_gib_ettn_normalizes_hex_uuid_to_36_chars(self) -> None:
+        normalized = app.ensure_gib_ettn("550e8400e29b41d4a716446655440000")
+
+        self.assertEqual(normalized, "550e8400-e29b-41d4-a716-446655440000")
+        self.assertEqual(len(normalized), 36)
+
+    def test_create_gib_draft_once_retries_when_gib_rejects_ettn(self) -> None:
+        sent_payloads: list[dict] = []
+        fake_fatura_ver_module = ModuleType("eArsivPortal.Libs.FaturaVer")
+
+        def fake_fatura_ver(**kwargs):
+            return {
+                "faturaUuid": "invalid-ettn",
+                "aliciAdi": kwargs.get("ad", ""),
+                "aliciSoyadi": kwargs.get("soyad", ""),
+                "malHizmetTable": [
+                    {
+                        "malHizmet": "Dijital Hizmet Bedeli",
+                        "miktar": 1,
+                        "birim": "C62",
+                        "birimFiyat": "100",
+                        "fiyat": "100",
+                        "iskontoOrani": 0,
+                        "iskontoTutari": "0",
+                        "iskontoNedeni": "",
+                        "malHizmetTutari": "100",
+                        "kdvOrani": "20",
+                        "vergiOrani": 0,
+                        "kdvTutari": "20",
+                        "vergininKdvTutari": "0",
+                    }
+                ],
+            }
+
+        class FakePortal:
+            def __init__(self) -> None:
+                self.komutlar = type("Komutlar", (), {"FATURA_OLUSTUR": object()})()
+
+            def kisi_getir(self, _musteri_tc):
+                return type(
+                    "Kisi",
+                    (),
+                    {"adi": "", "soyadi": "", "unvan": "", "vergiDairesi": ""},
+                )()
+
+            def _eArsivPortal__kod_calistir(self, *, komut, jp):
+                sent_payloads.append(dict(jp))
+                return {"data": "Faturanız başarıyla oluşturulmuştur."}
+
+            def faturalari_getir(self, *, baslangic_tarihi, bitis_tarihi):
+                return [
+                    {
+                        "ettn": "portal-ettn-123",
+                        "belgeNumarasi": "GIB2026000999",
+                        "aliciVknTckn": "11111111111",
+                        "aliciUnvanAdSoyad": "Ali Veli",
+                        "belgeTarihi": "10-05-2026",
+                        "onayDurumu": "Onaylanmadı",
+                    }
+                ]
+
+        fake_fatura_ver_module.fatura_ver = fake_fatura_ver
+
+        with patch.dict(sys.modules, {"eArsivPortal.Libs.FaturaVer": fake_fatura_ver_module}):
+            with patch.object(app, "create_gib_portal_session", return_value=FakePortal()):
+                status, message, gib_ettn = app.create_gib_draft_once(
+                    gib_kullanici="demo",
+                    gib_sifre="demo",
+                    musteri_adi="Ali Veli",
+                    musteri_tc="11111111111",
+                    islem_tarihi=app.date(2026, 5, 10),
+                    toplam_fatura=120.0,
+                )
+
+        self.assertEqual(status, "Taslak Oluşturuldu")
+        self.assertIn("başarıyla", message.casefold())
+        self.assertEqual(len(sent_payloads), 1)
+        self.assertEqual(gib_ettn, "portal-ettn-123")
+        for payload in sent_payloads:
+            self.assertEqual(payload["faturaUuid"], "")
+            self.assertNotIn("ettn", payload)
+            self.assertEqual(payload["ihracKayitliKarsiBelgeNo"], "")
+            self.assertEqual(payload["yatirimTesvikNumarasi"], "")
+            self.assertEqual(payload["yatirimTesvikTarihi"], "10/05/2026")
+            self.assertIs(payload["kdvOranKontrolMuafiyeti"], False)
 
     def test_get_finance_summary_excludes_error_statuses(self) -> None:
         df = pd.DataFrame(

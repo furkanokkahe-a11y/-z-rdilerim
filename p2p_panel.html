@@ -356,6 +356,28 @@ details summary{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;
     </div>
   </div>
   <div class="metric-grid finance-metric-grid" id="fin-metrics"></div>
+  <div class="card">
+    <div class="card-title">Tarih Bazli GIB Kontrolu</div>
+    <p class="section-note">Secilen aralikta panelde olup GIB'de gorunmeyen ve GIB'de olup panelde bulunmayan kayitlari tarihe gore kontrol edin.</p>
+    <div class="filter-row" style="margin-bottom:0">
+      <input type="date" id="fin-gib-start">
+      <input type="date" id="fin-gib-end">
+      <button class="btn btn-secondary" onclick="compareGibDateDiscrepancies()">GIB ile Karsilastir</button>
+    </div>
+    <div id="fin-gib-compare-msg" style="margin-top:12px"></div>
+    <div class="g2" id="fin-gib-compare-grid" style="gap:12px;margin-top:12px;display:none">
+      <div class="audit-item">
+        <strong>Panelde var, GIB'de yok</strong>
+        <span id="fin-panel-only-summary">—</span>
+        <div class="audit-list" id="fin-panel-only-list"></div>
+      </div>
+      <div class="audit-item">
+        <strong>GIB'de var, panelde yok</strong>
+        <span id="fin-gib-only-summary">—</span>
+        <div class="audit-list" id="fin-gib-only-list"></div>
+      </div>
+    </div>
+  </div>
   <div class="finance-board">
     <div class="finance-panel">
       <div class="card-title">Son 30 Gunluk Fatura ve KDV Akisi</div>
@@ -497,7 +519,7 @@ details summary{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;
   <div id="act-pagination" class="pagination"></div>
   <div id="act-msg"></div>
   <div class="btn-row">
-    <button class="btn btn-secondary" onclick="downloadActiveExportXlsx()">📥 Tümünü Excel İndir</button>
+    <a href="/api/export/xlsx?archived=false" class="btn btn-secondary" target="_blank">📥 Tümünü Excel İndir</a>
   </div>
 </div>
 
@@ -565,7 +587,6 @@ details summary{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;
   </div>
 
   <div class="archive-grid" id="arch-list"></div>
-  <div id="arch-msg"></div>
   <div id="arch-detail"></div>
 </div>
 
@@ -603,9 +624,9 @@ details summary{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;
       <div class="field"><label>Açıklama</label><input id="exp-desc" placeholder="Örn: araç kiralama"></div>
     </div>
     <div class="g4">
-      <div class="field"><label>Kategori</label><select id="exp-category" onchange="updateExpensePreview()"><option>Araç</option><option>Yemek</option><option>Teknoloji</option><option>Market</option><option>Genel</option></select></div>
+      <div class="field"><label>Kategori</label><select id="exp-category" onchange="handleExpenseCategoryChange()"><option>Araç</option><option selected>Yemek</option><option>Teknoloji</option><option>Market</option><option>Genel</option></select></div>
       <div class="field"><label>Toplam Tutar</label><input type="number" id="exp-total" min="0" step="0.01" value="0" oninput="updateExpensePreview()"></div>
-      <div class="field"><label>KDV Oranı (%)</label><input type="number" id="exp-vat" min="10" max="20" step="1" value="20" oninput="updateExpensePreview()"></div>
+      <div class="field"><label>KDV Oranı (%)</label><input type="number" id="exp-vat" min="10" max="20" step="1" value="10" oninput="updateExpensePreview()"></div>
       <div class="field"><label>Fatura Seç</label><input type="file" id="exp-file" accept=".pdf,.jpg,.jpeg,.png"></div>
     </div>
     <div class="field"><label><input type="checkbox" id="exp-commercial" onchange="updateExpensePreview()" style="width:auto;margin-right:8px">Ticari Araç</label></div>
@@ -813,55 +834,6 @@ async function api(method, path, body){
   return r.json();
 }
 
-function getDownloadFilename(disposition, fallbackName){
-  if(!disposition) return fallbackName;
-  const utfMatch=disposition.match(/filename\*=UTF-8''([^;]+)/i);
-  if(utfMatch){
-    try{return decodeURIComponent(utfMatch[1]);}catch{return fallbackName;}
-  }
-  const asciiMatch=disposition.match(/filename="?([^";]+)"?/i);
-  return asciiMatch ? asciiMatch[1] : fallbackName;
-}
-
-async function downloadFile(path, fallbackName, messageTargetId=''){
-  try{
-    const headers={};
-    const token=getAuthToken();
-    if(token) headers['X-Panel-Token']=token;
-    const r=await fetch(API+path,{headers});
-    if(r.status===401){
-      clearAuthSession();
-      showAuthOverlay('Oturum gerekli veya süresi doldu.');
-      throw new Error('Oturum gerekli.');
-    }
-    if(!r.ok){
-      const e=await r.json().catch(()=>({detail:r.statusText}));
-      throw new Error(e.detail||r.statusText);
-    }
-    const blob=await r.blob();
-    const filename=getDownloadFilename(r.headers.get('Content-Disposition'), fallbackName);
-    const downloadUrl=URL.createObjectURL(blob);
-    const link=document.createElement('a');
-    link.href=downloadUrl;
-    link.download=filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    setTimeout(()=>URL.revokeObjectURL(downloadUrl),1000);
-  }catch(e){
-    if(messageTargetId) showMsg(messageTargetId,'err',e.message,8000);
-    else throw e;
-  }
-}
-
-function downloadActiveExportXlsx(){
-  return downloadFile('/api/export/xlsx?archived=false',`aktif_${today()}.xlsx`,'act-msg');
-}
-
-function downloadArchiveExportXlsx(key){
-  return downloadFile(`/api/export/xlsx?archive_key=${encodeURIComponent(key)}`,`arsiv_${key}.xlsx`,'arch-msg');
-}
-
 function badge(s){
   const m={'Kaydedildi':'saved','Taslak Oluşturuldu':'draft','İmzalandı':'signed','GİB Hatası':'error','Kimlik Bekleniyor':'wait','Kütüphane Eksik':'wait','Zaman Aşımı':'error','API Bekleniyor':'pending','GİB Taslağı Silinmiş':'error'};
   return `<span class="badge badge-${m[s]||'saved'}">${s}</span>`;
@@ -971,7 +943,79 @@ function renderDashTable(){
 function sortDashTable(col){ if(dashSortCol===col) dashSortAsc=!dashSortAsc; else{dashSortCol=col;dashSortAsc=true;} renderDashTable(); }
 
 // ── Finance ──────────────────────────────────────────────────────────────────
+function financeRangeStart(){
+  const d=new Date();
+  return new Date(d.getFullYear(),d.getMonth(),1).toISOString().slice(0,10);
+}
+
+function initFinanceCompareDates(){
+  const s=document.getElementById('fin-gib-start');
+  const e=document.getElementById('fin-gib-end');
+  if(!s.value) s.value=financeRangeStart();
+  if(!e.value) e.value=today();
+}
+
+function setFinanceCompareMessage(type,text){
+  document.getElementById('fin-gib-compare-msg').innerHTML=`<div class="alert alert-${type}">${text}</div>`;
+}
+
+function renderDiscrepancyBucket(summaryId,listId,rows,emptyText,includeTotal){
+  const summary=document.getElementById(summaryId);
+  const list=document.getElementById(listId);
+  if(!rows.length){
+    summary.textContent=emptyText;
+    list.innerHTML='';
+    return;
+  }
+  const total=rows.reduce((sum,row)=>sum+Number(row.kayit_adedi||0),0);
+  summary.textContent=`${total} kayıt bulundu.`;
+  list.innerHTML=rows.slice(0,6).map(row=>{
+    const totalText=includeTotal&&row.toplam_fatura!=null?` · ₺${fmt(row.toplam_fatura)}`:'';
+    const examples=(row.ornekler||[]).length ? row.ornekler.join(' • ') : 'Örnek müşteri yok';
+    return `<div class="audit-item"><strong>${row.tarih} · ${row.kayit_adedi} kayıt${totalText}</strong><span>${examples}</span></div>`;
+  }).join('');
+}
+
+function resetFinanceDiscrepancies(message){
+  document.getElementById('fin-gib-compare-grid').style.display='none';
+  document.getElementById('fin-panel-only-summary').textContent='—';
+  document.getElementById('fin-gib-only-summary').textContent='—';
+  document.getElementById('fin-panel-only-list').innerHTML='';
+  document.getElementById('fin-gib-only-list').innerHTML='';
+  if(message) setFinanceCompareMessage('warn',message); else document.getElementById('fin-gib-compare-msg').innerHTML='';
+}
+
+async function compareGibDateDiscrepancies(){
+  const start=document.getElementById('fin-gib-start').value;
+  const end=document.getElementById('fin-gib-end').value;
+  const gibUser=document.getElementById('gib-user').value.trim();
+  const gibPass=document.getElementById('gib-pass').value.trim();
+  if(!start||!end) return resetFinanceDiscrepancies('Karşılaştırma için başlangıç ve bitiş tarihi seçin.');
+  if(start>end) return resetFinanceDiscrepancies('Başlangıç tarihi bitiş tarihinden büyük olamaz.');
+  if(!gibUser||!gibPass) return resetFinanceDiscrepancies('GIB kullanıcı kodu ve şifresi girildiğinde tarih bazlı kontrol burada çalışır.');
+
+  setFinanceCompareMessage('warn','GIB kayıtları kontrol ediliyor...');
+  document.getElementById('fin-gib-compare-grid').style.display='none';
+  try{
+    const result=await api('POST','/api/gib/date-discrepancies',{
+      baslangic_tarihi:start,
+      bitis_tarihi:end,
+      gib_kullanici:gibUser,
+      gib_sifre:gibPass
+    });
+    const hasMismatch=Number(result.panel_only_count||0)>0||Number(result.gib_only_count||0)>0;
+    setFinanceCompareMessage(hasMismatch?'warn':'ok',result.message||'Karşılaştırma tamamlandı.');
+    document.getElementById('fin-gib-compare-grid').style.display='grid';
+    renderDiscrepancyBucket('fin-panel-only-summary','fin-panel-only-list',result.panel_only_dates||[],'Eksik panel kaydı yok.',true);
+    renderDiscrepancyBucket('fin-gib-only-summary','fin-gib-only-list',result.gib_only_dates||[],'Eksik GIB kaydı yok.',false);
+  }catch(e){
+    resetFinanceDiscrepancies(e.message);
+    document.getElementById('fin-gib-compare-msg').innerHTML=`<div class="alert alert-err">${e.message}</div>`;
+  }
+}
+
 async function loadFinance(){
+  initFinanceCompareDates();
   const fin=await api('GET','/api/finance-summary');
   if(!fin||!fin.toplam_kayit){
     document.getElementById('fin-hero-title').textContent='Finans akisi hazirlaniyor';
@@ -987,6 +1031,8 @@ async function loadFinance(){
     document.getElementById('fin-months').innerHTML='';
     document.getElementById('fin-status').innerHTML='';
     document.getElementById('fin-customers').innerHTML='';
+    if(document.getElementById('gib-user').value.trim()&&document.getElementById('gib-pass').value.trim()) compareGibDateDiscrepancies();
+    else resetFinanceDiscrepancies('GIB kullanıcı kodu ve şifresi girildiğinde tarih bazlı kontrol burada görünür.');
     return;
   }
 
@@ -1057,6 +1103,9 @@ async function loadFinance(){
   document.getElementById('fin-customers').innerHTML=(fin.top_customers||[]).map(row=>
     `<tr><td>${row['Müşteri Adı']}</td><td>${row.kayit_adedi}</td><td>₺${fmt(row.toplam_fatura)}</td><td>₺${fmt(row.toplam_kdv)}</td></tr>`
   ).join('')||'<tr><td colspan="4" style="text-align:center;color:var(--muted)">Veri yok</td></tr>';
+
+  if(document.getElementById('gib-user').value.trim()&&document.getElementById('gib-pass').value.trim()) compareGibDateDiscrepancies();
+  else resetFinanceDiscrepancies('GIB kullanıcı kodu ve şifresi girildiğinde tarih bazlı kontrol burada görünür.');
 }
 
 // ── New Transaction ───────────────────────────────────────────────────────────
@@ -1133,11 +1182,13 @@ async function saveTransaction(){
     const card=btn.closest('.card');
     if(card){ card.classList.remove('flash-ok'); void card.offsetWidth; card.classList.add('flash-ok'); setTimeout(()=>card.classList.remove('flash-ok'),800); }
 
-    const ok=res.gib_durumu==='Taslak Oluşturuldu';
+    const ok=res.gib_durumu==='Taslak Oluşturuldu'||(mode==='manual'&&res.gib_durumu==='Kaydedildi');
     const warn=['Kimlik Bekleniyor','Kütüphane Eksik','API Bekleniyor'].includes(res.gib_durumu);
     const type=ok?'ok':warn?'warn':'err';
     let msg=mode==='auto'?`Vergisiz: ₺${fmt(res['Vergisiz Bedel'])} | KDV: ₺${fmt(res['KDV'])} | Toplam: ₺${fmt(res['Toplam Fatura'])}<br>`:'';
-    msg+=`GİB: <b>${res.gib_durumu}</b> — ${res.gib_mesaji}`;
+    msg+=mode==='auto'
+      ?`GİB: <b>${res.gib_durumu}</b> — ${res.gib_mesaji}`
+      :`Panel: <b>${res.gib_durumu}</b> — ${res.gib_mesaji}`;
     showMsg('new-msg',type,msg,8000);
     document.getElementById('n-name').value='';
     loadQuickUsdt();
@@ -1455,7 +1506,7 @@ async function loadArchiveDetail(key){
           <div class="table-shell-note">Seçili paketin tüm kayıtları burada; Excel indirme ve aktife geri alma aksiyonları sağ tarafta durur.</div>
         </div>
         <div class="table-shell-tools">
-          <button class="btn btn-secondary" onclick="downloadArchiveExportXlsx('${key.replace(/'/g,"\\'")}')">📥 Excel İndir</button>
+          <a href="/api/export/xlsx?archive_key=${encodeURIComponent(key)}" class="btn btn-secondary" target="_blank">📥 Excel İndir</a>
           <button class="btn btn-danger" onclick="restoreArchive('${key.replace(/'/g,"\\'")}')">↩️ Arşivi Aktife Al</button>
         </div>
       </div>
@@ -1506,7 +1557,7 @@ async function addToArchive(){
       gib_kullanici:gibUser,gib_sifre:gibPass,
       archive_key:key||'new',archive_label:label||''
     });
-    showMsg('ar-msg','ok',`Arşive eklendi. GİB: ${r.gib_durumu}`);
+    showMsg('ar-msg','ok',`Arşive eklendi. ${r.gib_mesaji}`);
     loadArchives();
   }catch(e){ showMsg('ar-msg','err',e.message); }
 }
@@ -1515,6 +1566,7 @@ async function addToArchive(){
 function initExpenseForm(){
   const dateInput=document.getElementById('exp-date');
   if(dateInput && !dateInput.value) dateInput.value=today();
+  syncExpenseVatWithCategory();
   updateExpensePreview();
 }
 
@@ -1528,6 +1580,16 @@ function calculateExpensePreview(){
   const deductibleVat=+vatAmount.toFixed(2);
   const taxShield=+(taxBase * 0.20).toFixed(2);
   return {vatAmount, netExpense, expenseRate, taxBase, deductibleVat, taxShield};
+}
+
+function syncExpenseVatWithCategory(){
+  const category=document.getElementById('exp-category').value;
+  document.getElementById('exp-vat').value=category==='Yemek' ? '10' : '20';
+}
+
+function handleExpenseCategoryChange(){
+  syncExpenseVatWithCategory();
+  updateExpensePreview();
 }
 
 function updateExpensePreview(){
@@ -1654,9 +1716,9 @@ async function saveExpense(){
     showMsg('exp-msg','ok','Gider kaydedildi ve fatura dosyası giderler/faturalar klasörüne kopyalandı.',8000);
     document.getElementById('exp-date').value=today();
     document.getElementById('exp-desc').value='';
-    document.getElementById('exp-category').value='Araç';
+    document.getElementById('exp-category').value='Yemek';
     document.getElementById('exp-total').value='0';
-    document.getElementById('exp-vat').value='20';
+    syncExpenseVatWithCategory();
     document.getElementById('exp-commercial').checked=false;
     document.getElementById('exp-file').value='';
     updateExpensePreview();

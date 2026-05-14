@@ -3,6 +3,7 @@ import unittest
 import zipfile
 from datetime import datetime
 from pathlib import Path
+from unittest.mock import patch
 
 import pandas as pd
 
@@ -91,6 +92,80 @@ class GibFaturaApiTests(unittest.TestCase):
             self.assertIn("giderler/faturalar/fatura.pdf", names)
             self.assertIn("guvenlik/panel_auth.json", names)
             self.assertIn("manifest.json", names)
+
+    def test_create_manual_transaction_only_saves_to_panel(self) -> None:
+        payload = api.ManualTransactionIn(
+            musteri_adi="Test Musteri",
+            musteri_tc="12345678901",
+            islem_tarihi="2026-01-15",
+            vergisiz_bedel=100.0,
+            kdv=20.0,
+            toplam_fatura=120.0,
+            gib_kullanici="kullanici",
+            gib_sifre="sifre",
+        )
+
+        with patch("gib_fatura_api.try_create_gib_draft", side_effect=AssertionError("manual endpoint should not call GIB")):
+            with patch("gib_fatura_api.save_transaction", return_value=42) as save_mock:
+                result = api.create_manual_transaction(payload)
+
+        self.assertEqual(result["id"], 42)
+        self.assertEqual(result["gib_durumu"], "Kaydedildi")
+        self.assertEqual(result["Durum Mesajı"], "Manuel fatura panele kaydedildi. GIB'e gonderilmedi.")
+        self.assertIsNone(result["GİB ETTN"])
+        save_mock.assert_called_once()
+
+    def test_analyze_gib_date_discrepancies_reports_both_sides(self) -> None:
+        transactions_df = pd.DataFrame(
+            [
+                {
+                    "id": 1,
+                    "İşlem Tarihi": "2026-01-15",
+                    "Müşteri Adı": "Ali Kaya",
+                    "T.C. Kimlik No": "11111111111",
+                    "Toplam Fatura": 120.0,
+                    "GİB ETTN": "",
+                },
+                {
+                    "id": 2,
+                    "İşlem Tarihi": "2026-01-16",
+                    "Müşteri Adı": "Veli Demir",
+                    "T.C. Kimlik No": "22222222222",
+                    "Toplam Fatura": 240.0,
+                    "GİB ETTN": "",
+                },
+            ]
+        )
+        gib_drafts_df = pd.DataFrame(
+            [
+                {
+                    "ettn": "",
+                    "belge_numarasi": "A-1",
+                    "musteri_tc": "11111111111",
+                    "musteri_adi": "Ali Kaya",
+                    "islem_tarihi": "2026-01-15",
+                    "onay_durumu": "Onaylanmadı",
+                },
+                {
+                    "ettn": "",
+                    "belge_numarasi": "A-2",
+                    "musteri_tc": "33333333333",
+                    "musteri_adi": "Ayse Yilmaz",
+                    "islem_tarihi": "2026-01-17",
+                    "onay_durumu": "Onaylanmadı",
+                },
+            ]
+        )
+
+        result = api.analyze_gib_date_discrepancies(transactions_df, gib_drafts_df)
+
+        self.assertEqual(result["matched_records"], 1)
+        self.assertEqual(result["panel_only_count"], 1)
+        self.assertEqual(result["gib_only_count"], 1)
+        self.assertEqual(result["panel_only_dates"][0]["tarih"], "2026-01-16")
+        self.assertEqual(result["gib_only_dates"][0]["tarih"], "2026-01-17")
+        self.assertEqual(result["panel_only_dates"][0]["kayit_adedi"], 1)
+        self.assertEqual(result["gib_only_dates"][0]["kayit_adedi"], 1)
 
 
 if __name__ == "__main__":

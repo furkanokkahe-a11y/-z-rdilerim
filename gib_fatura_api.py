@@ -22,6 +22,7 @@ import sqlite3
 from types import MethodType
 from typing import Optional
 import unicodedata
+from uuid import UUID, uuid4
 import zipfile
 
 import pandas as pd
@@ -42,6 +43,7 @@ BACKUP_DIR = BASE_DIR / "yedekler"
 HTML_PATH = BASE_DIR / "p2p_panel.html"
 STYLES_DIR = BASE_DIR / "styles"
 PANEL_AUTH_PATH = BASE_DIR / "panel_auth.json"
+GIB_DRAFT_DEBUG_LOG_PATH = BASE_DIR / "gib_draft_debug.log"
 
 EXPORT_KOLONLARI = [
     "İşlem Tarihi", "Müşteri Adı", "T.C. Kimlik No",
@@ -57,6 +59,7 @@ ARCHIVE_MATCH_KOLONLARI = [
 ]
 DEFAULT_TC = "11111111111"
 GIB_REQUEST_TIMEOUT_SECONDS = 20
+GIB_ETTN_RETRY_LIMIT = 3
 PANEL_SESSION_TTL_HOURS = 12
 TRACKING_COLUMN_DEFINITIONS = {
     "gib_ettn": "TEXT",
@@ -1052,6 +1055,251 @@ def match_gib_drafts_to_transactions(
     return matches
 
 
+def summarize_discrepancy_rows(
+    rows_df: pd.DataFrame,
+    *,
+    date_column: str,
+    customer_column: str,
+    tc_column: str,
+    total_column: str | None = None,
+) -> list[dict]:
+    if rows_df.empty:
+        return []
+
+    working_df = rows_df.copy()
+    working_df[date_column] = working_df[date_column].apply(normalize_portal_date)
+    working_df = working_df[working_df[date_column].astype(str).str.strip() != ""]
+    if working_df.empty:
+        return []
+
+    groups: list[dict] = []
+    for tarih, group in working_df.groupby(date_column, sort=False):
+        samples: list[str] = []
+        seen_samples: set[str] = set()
+        for _, row in group.iterrows():
+            musteri_adi = str(row.get(customer_column) or "").strip() or "Bilinmeyen Müşteri"
+            musteri_tc = normalize_tc_value(row.get(tc_column))
+            sample = f"{musteri_adi} ({musteri_tc})" if musteri_tc else musteri_adi
+            if sample not in seen_samples:
+                seen_samples.add(sample)
+                samples.append(sample)
+            if len(samples) == 3:
+                break
+
+        payload = {
+            "tarih": str(tarih),
+            "kayit_adedi": int(len(group)),
+            "ornekler": samples,
+        }
+        if total_column and total_column in group.columns:
+            payload["toplam_fatura"] = round(
+                float(pd.to_numeric(group[total_column], errors="coerce").fillna(0.0).sum()),
+                2,
+            )
+        groups.append(payload)
+
+    return sorted(groups, key=lambda item: item["tarih"], reverse=True)
+
+
+def analyze_gib_date_discrepancies(
+    transactions_df: pd.DataFrame,
+    gib_drafts_df: pd.DataFrame,
+) -> dict:
+    matched_transaction_ids: set[int] = set()
+    matched_draft_indices: set[int] = set()
+
+    if not transactions_df.empty and not gib_drafts_df.empty and "GİB ETTN" in transactions_df.columns:
+        draft_index_by_ettn = {
+            str(row.get("ettn") or "").strip(): int(index)
+            for index, row in gib_drafts_df.iterrows()
+            if str(row.get("ettn") or "").strip()
+        }
+        for _, transaction in transactions_df.iterrows():
+            ettn = str(transaction.get("GİB ETTN") or "").strip()
+            if not ettn:
+                continue
+            draft_index = draft_index_by_ettn.get(ettn)
+            if draft_index is None:
+                continue
+            matched_transaction_ids.add(int(transaction["id"]))
+            matched_draft_indices.add(draft_index)
+
+    remaining_transactions = transactions_df[
+        ~transactions_df["id"].astype(int).isin(matched_transaction_ids)
+    ].copy() if not transactions_df.empty else transactions_df.copy()
+    remaining_drafts = gib_drafts_df[
+        ~gib_drafts_df.index.isin(matched_draft_indices)
+    ].copy() if not gib_drafts_df.empty else gib_drafts_df.copy()
+
+    if not remaining_transactions.empty and not remaining_drafts.empty:
+        remaining_transactions["sync_key"] = remaining_transactions.apply(
+            lambda row: build_gib_sync_key(
+                row.get("İşlem Tarihi"),
+                row.get("T.C. Kimlik No"),
+                row.get("Müşteri Adı"),
+            ),
+            axis=1,
+        )
+        remaining_drafts["sync_key"] = remaining_drafts.apply(
+            lambda row: build_gib_sync_key(
+                row.get("islem_tarihi"),
+                row.get("musteri_tc"),
+                row.get("musteri_adi"),
+            ),
+            axis=1,
+        )
+
+        unique_transaction_keys = remaining_transactions["sync_key"].value_counts()
+        unique_draft_keys = remaining_drafts["sync_key"].value_counts()
+        candidate_keys = [
+            key
+            for key in unique_transaction_keys.index
+            if key
+            and unique_transaction_keys.get(key, 0) == 1
+            and unique_draft_keys.get(key, 0) == 1
+        ]
+
+        for sync_key in candidate_keys:
+            transaction = remaining_transactions[remaining_transactions["sync_key"] == sync_key].iloc[0]
+            draft_row = remaining_drafts[remaining_drafts["sync_key"] == sync_key].iloc[0]
+            matched_transaction_ids.add(int(transaction["id"]))
+            matched_draft_indices.add(int(draft_row.name))
+
+    panel_only_df = transactions_df[
+        ~transactions_df["id"].astype(int).isin(matched_transaction_ids)
+    ].copy() if not transactions_df.empty else transactions_df.copy()
+    gib_only_df = gib_drafts_df[
+        ~gib_drafts_df.index.isin(matched_draft_indices)
+    ].copy() if not gib_drafts_df.empty else gib_drafts_df.copy()
+
+    return {
+        "matched_records": int(len(matched_transaction_ids)),
+        "panel_only_count": int(len(panel_only_df)),
+        "gib_only_count": int(len(gib_only_df)),
+        "panel_only_dates": summarize_discrepancy_rows(
+            panel_only_df,
+            date_column="İşlem Tarihi",
+            customer_column="Müşteri Adı",
+            tc_column="T.C. Kimlik No",
+            total_column="Toplam Fatura",
+        ),
+        "gib_only_dates": summarize_discrepancy_rows(
+            gib_only_df,
+            date_column="islem_tarihi",
+            customer_column="musteri_adi",
+            tc_column="musteri_tc",
+        ),
+    }
+
+
+def compare_gib_records_by_date(
+    *,
+    gib_kullanici: str,
+    gib_sifre: str,
+    baslangic_tarihi: date,
+    bitis_tarihi: date,
+    db_path: Path = DATABASE_PATH,
+) -> dict:
+    transactions_df = load_transactions(db_path, archived=None)
+    if not transactions_df.empty:
+        transactions_df["İşlem Tarihi"] = pd.to_datetime(transactions_df["İşlem Tarihi"], errors="coerce")
+        transactions_df = transactions_df.dropna(subset=["İşlem Tarihi"]).copy()
+        transactions_df = transactions_df[
+            (transactions_df["İşlem Tarihi"] >= pd.Timestamp(baslangic_tarihi))
+            & (transactions_df["İşlem Tarihi"] <= pd.Timestamp(bitis_tarihi))
+        ].copy()
+        if not transactions_df.empty:
+            transactions_df["İşlem Tarihi"] = transactions_df["İşlem Tarihi"].dt.strftime("%Y-%m-%d")
+
+    portal = create_gib_portal_session(gib_kullanici, gib_sifre)
+    try:
+        drafts = portal.faturalari_getir(
+            baslangic_tarihi=baslangic_tarihi.strftime("%d/%m/%Y"),
+            bitis_tarihi=bitis_tarihi.strftime("%d/%m/%Y"),
+        )
+    finally:
+        try:
+            portal.cikis_yap()
+        except Exception:
+            pass
+
+    gib_drafts_df = normalize_gib_drafts(drafts)
+    analysis = analyze_gib_date_discrepancies(transactions_df, gib_drafts_df)
+    analysis.update(
+        {
+            "baslangic_tarihi": baslangic_tarihi.isoformat(),
+            "bitis_tarihi": bitis_tarihi.isoformat(),
+            "panel_records": int(len(transactions_df)),
+            "gib_records": int(len(gib_drafts_df)),
+        }
+    )
+    if analysis["panel_only_count"] or analysis["gib_only_count"]:
+        analysis["message"] = (
+            f"Panelde eksik GİB kaydı: {analysis['panel_only_count']} | "
+            f"GİB'de eksik panel kaydı: {analysis['gib_only_count']}"
+        )
+    else:
+        analysis["message"] = "Seçilen tarih aralığında panel ve GİB kayıtları birbiriyle uyumlu."
+    return analysis
+
+
+def try_compare_gib_records_by_date(
+    *,
+    gib_kullanici: str,
+    gib_sifre: str,
+    baslangic_tarihi: date,
+    bitis_tarihi: date,
+    db_path: Path = DATABASE_PATH,
+) -> dict:
+    if not gib_kullanici or not gib_sifre:
+        return {
+            "ok": False,
+            "status": "Kimlik Bekleniyor",
+            "message": "Tarih bazlı GİB kontrolü için kullanıcı kodu ve şifre girin.",
+        }
+    if find_spec("eArsivPortal") is None:
+        return {
+            "ok": False,
+            "status": "Kütüphane Eksik",
+            "message": "eArsivPortal kurulu değil. Terminalden `pip install eArsivPortal` çalıştırın.",
+        }
+
+    try:
+        result = compare_gib_records_by_date(
+            gib_kullanici=gib_kullanici,
+            gib_sifre=gib_sifre,
+            baslangic_tarihi=baslangic_tarihi,
+            bitis_tarihi=bitis_tarihi,
+            db_path=db_path,
+        )
+    except requests.Timeout:
+        return {
+            "ok": False,
+            "status": "Zaman Aşımı",
+            "message": f"GİB Portalı {GIB_REQUEST_TIMEOUT_SECONDS} saniye içinde yanıt vermedi.",
+        }
+    except requests.RequestException as exc:
+        return {
+            "ok": False,
+            "status": "Bağlantı Hatası",
+            "message": f"GİB Portalına bağlanırken ağ hatası oluştu: {exc}",
+        }
+    except Exception as exc:
+        msg = str(exc)
+        if "unable to infer type" in msg or "ConfigError" in msg:
+            if not (sys.version_info >= (3, 11) and sys.version_info < (3, 13)):
+                return {
+                    "ok": False,
+                    "status": "Uyumluluk Hatası",
+                    "message": "eArsivPortal mevcut Python sürümüyle uyumlu görünmüyor. Python 3.11 veya 3.12 kullanın.",
+                }
+        return {"ok": False, "status": "GİB Hatası", "message": msg}
+
+    result["ok"] = True
+    result["status"] = "Kontrol Tamamlandı"
+    return result
+
+
 def create_gib_portal_session(gib_kullanici: str, gib_sifre: str):
     from eArsivPortal import eArsivPortal
     from eArsivPortal.Libs.Oturum import legacy_session
@@ -1079,6 +1327,246 @@ def wrap_session_post_with_timeout(session: requests.Session, timeout_seconds: i
         return original_post(*args, **kwargs)
 
     session.post = MethodType(post_with_timeout, session)
+
+
+def ensure_gib_ettn(value: object) -> str:
+    raw_value = str(value or "").strip()
+    if raw_value:
+        try:
+            return str(UUID(raw_value))
+        except (AttributeError, TypeError, ValueError):
+            pass
+    return str(uuid4())
+
+
+def prepare_gib_create_payload(payload: dict, islem_tarihi: date) -> dict:
+    prepared_payload = dict(payload)
+    prepared_payload["faturaUuid"] = ""
+    prepared_payload.pop("ettn", None)
+    prepared_payload["ihracKayitliKarsiBelgeNo"] = ""
+    prepared_payload["yatirimTesvikNumarasi"] = ""
+    prepared_payload["yatirimTesvikTarihi"] = islem_tarihi.strftime("%d/%m/%Y")
+    prepared_payload["kdvOranKontrolMuafiyeti"] = False
+    return prepared_payload
+
+
+def resolve_created_gib_ettn(
+    *,
+    portal,
+    musteri_adi: str,
+    musteri_tc: str,
+    islem_tarihi: date,
+) -> str | None:
+    try:
+        drafts = portal.faturalari_getir(
+            baslangic_tarihi=islem_tarihi.strftime("%d/%m/%Y"),
+            bitis_tarihi=islem_tarihi.strftime("%d/%m/%Y"),
+        )
+    except Exception:
+        return None
+
+    drafts_df = normalize_gib_drafts(drafts)
+    if drafts_df.empty:
+        return None
+
+    target_key = build_gib_sync_key(islem_tarihi.isoformat(), musteri_tc, musteri_adi)
+    drafts_df["sync_key"] = drafts_df.apply(
+        lambda row: build_gib_sync_key(
+            row.get("islem_tarihi"),
+            row.get("musteri_tc"),
+            row.get("musteri_adi"),
+        ),
+        axis=1,
+    )
+    matching_rows = drafts_df[drafts_df["sync_key"] == target_key].copy()
+    if matching_rows.empty:
+        return None
+
+    pending_rows = matching_rows[
+        matching_rows["onay_durumu"].fillna("").str.contains("onaylanmadı|onaylanmadi", case=False)
+    ]
+    candidate_rows = pending_rows if not pending_rows.empty else matching_rows
+    ettn_values = [
+        str(value).strip()
+        for value in candidate_rows["ettn"].tolist()
+        if str(value or "").strip()
+    ]
+    unique_ettn_values = list(dict.fromkeys(ettn_values))
+    if len(unique_ettn_values) == 1:
+        return unique_ettn_values[0]
+    return None
+
+
+def enrich_gib_invoice_payload(payload: dict) -> dict:
+    def as_float(value: object) -> float:
+        text = str(value).strip().replace(",", ".")
+        if not text:
+            return 0.0
+        return float(text)
+
+    payload.setdefault("ozelMatrahTutari", 0.0)
+    payload.setdefault("ozelMatrahOrani", 0)
+    payload.setdefault("ozelMatrahVergiTutari", 0.0)
+    payload.setdefault("toplamMasraflar", 0.0)
+    payload.setdefault("hata", "")
+
+    for field_name in (
+        "komisyonOrani",
+        "navlunOrani",
+        "hammaliyeOrani",
+        "nakliyeOrani",
+        "komisyonTutari",
+        "navlunTutari",
+        "hammaliyeTutari",
+        "nakliyeTutari",
+        "komisyonKDVOrani",
+        "navlunKDVOrani",
+        "hammaliyeKDVOrani",
+        "nakliyeKDVOrani",
+        "komisyonKDVTutari",
+        "navlunKDVTutari",
+        "hammaliyeKDVTutari",
+        "nakliyeKDVTutari",
+        "gelirVergisiOrani",
+        "bagkurTevkifatiOrani",
+        "gelirVergisiTevkifatiTutari",
+        "bagkurTevkifatiTutari",
+        "halRusumuOrani",
+        "ticaretBorsasiOrani",
+        "milliSavunmaFonuOrani",
+        "digerOrani",
+        "halRusumuTutari",
+        "ticaretBorsasiTutari",
+        "milliSavunmaFonuTutari",
+        "digerTutari",
+        "halRusumuKDVOrani",
+        "ticaretBorsasiKDVOrani",
+        "milliSavunmaFonuKDVOrani",
+        "digerKDVOrani",
+        "halRusumuKDVTutari",
+        "ticaretBorsasiKDVTutari",
+        "milliSavunmaFonuKDVTutari",
+        "digerKDVTutari",
+    ):
+        payload.setdefault(field_name, 0.0)
+
+    for field_name in (
+        "dovzTLkur",
+        "matrah",
+        "malhizmetToplamTutari",
+        "toplamIskonto",
+        "hesaplanankdv",
+        "vergilerToplami",
+        "vergilerDahilToplamTutar",
+        "odenecekTutar",
+        "ozelMatrahTutari",
+        "ozelMatrahVergiTutari",
+        "toplamMasraflar",
+    ):
+        payload[field_name] = as_float(payload.get(field_name, 0.0))
+
+    row_default_values = {
+        "iskontoArttm": "İskonto",
+        "ozelMatrahTutari": "0",
+        "hesaplananotvtevkifatakatkisi2": "0",
+        "yatirimTesvikVazgecilenKdvOrani": 0.0,
+        "yatirimTesvikVazgecilenKdvTutari": 0.0,
+        "tevkifatIadeEdilenMalOrani": 0.0,
+        "tevkifatIadeKdvTutari": 0.0,
+        "tevkifatIadeKonuIslemBedeli": 0.0,
+        "tevkifatIadeTevkifatsizKdvTutari": 0.0,
+    }
+    for code in (
+        "V0021",
+        "V0061",
+        "V0071",
+        "V0073",
+        "V0074",
+        "V0075",
+        "V0076",
+        "V0077",
+        "V1047",
+        "V1048",
+        "V4080",
+        "V4081",
+        "V9015",
+        "V9021",
+        "V9077",
+        "V8001",
+        "V8002",
+        "V4071",
+        "V8004",
+        "V8005",
+        "V8006",
+        "V8007",
+        "V8008",
+        "V0003",
+        "V0011",
+        "V9040",
+        "V4171",
+        "V9944",
+        "V0059",
+    ):
+        row_default_values.setdefault(f"{code}Orani", 0.0)
+        row_default_values.setdefault(f"{code}Tutari", 0.0)
+        if code not in {"V0021", "V1048", "V4080", "V4081", "V9015", "V9021", "V8001", "V8006", "V8007", "V8008", "V0003", "V0011", "V9040", "V4171", "V0059"}:
+            row_default_values.setdefault(f"{code}KdvTutari", 0.0)
+
+    for row in payload.get("malHizmetTable", []):
+        for field_name, default_value in row_default_values.items():
+            row.setdefault(field_name, default_value)
+        for field_name in list(row):
+            if field_name == "malHizmet" or field_name == "birim" or field_name == "iskontoNedeni" or field_name == "iskontoArttm":
+                continue
+            if field_name == "miktar":
+                row[field_name] = as_float(row.get(field_name, 0.0))
+                continue
+            if field_name.endswith(("Orani", "Tutari", "KdvTutari")) or field_name in {
+                "birimFiyat",
+                "fiyat",
+                "malHizmetTutari",
+                "hesaplananotvtevkifatakatkisi",
+                "hesaplananotvtevkifatakatkisi2",
+                "vergiOrani",
+            }:
+                row[field_name] = as_float(row.get(field_name, 0.0))
+
+    return payload
+
+
+def debug_gib_draft_attempt(attempt_no: int, payload: dict, response_text: str = "") -> None:
+    debug_payload = {
+        "timestamp": now_iso(),
+        "attempt": attempt_no,
+        "faturaUuid": payload.get("faturaUuid"),
+        "ettn": payload.get("ettn"),
+        "payload": payload,
+    }
+    log_line = "[GIB DRAFT DEBUG] " + json.dumps(debug_payload, ensure_ascii=False, default=str)
+    print(log_line)
+    try:
+        with GIB_DRAFT_DEBUG_LOG_PATH.open("a", encoding="utf-8") as debug_file:
+            debug_file.write(log_line + "\n")
+    except OSError:
+        pass
+    if response_text:
+        response_line = f"[GIB DRAFT DEBUG] response={response_text}"
+        print(response_line)
+        try:
+            with GIB_DRAFT_DEBUG_LOG_PATH.open("a", encoding="utf-8") as debug_file:
+                debug_file.write(response_line + "\n")
+        except OSError:
+            pass
+
+
+def is_invalid_gib_ettn_error(response_text: str) -> bool:
+    normalized = str(response_text or "").strip().casefold()
+    return normalized in {
+        "ettn ya eksik ya boş ya da 36 uzunluk sınırına uymuyor.",
+        "ettn ya eksik ya bos ya da 36 uzunluk sınırına uymuyor.",
+        "ettn ya eksik ya boş ya da 36 uzunluk sinirina uymuyor.",
+        "ettn ya eksik ya bos ya da 36 uzunluk sinirina uymuyor.",
+    }
 
 
 def try_create_gib_draft(
@@ -1109,6 +1597,12 @@ def try_create_gib_draft(
 
         gib_ad, gib_soyad = split_customer_name(musteri_adi)
         kisi_bilgi = portal.kisi_getir(musteri_tc)
+        success_markers = (
+            "başarıyla oluşturulmuştur",
+            "basariyla olusturulmustur",
+            "başarıyla oluşturulmu",
+            "basariyla olusturulmu",
+        )
         payload = fatura_ver(
             tarih=islem_tarihi.strftime("%d/%m/%Y"),
             saat="12:00:00",
@@ -1121,22 +1615,27 @@ def try_create_gib_draft(
             fiyat=round(toplam_fatura, 2),
             fatura_notu="",
         )
+        payload = prepare_gib_create_payload(payload, islem_tarihi)
+        debug_gib_draft_attempt(1, payload)
+
         response = portal._eArsivPortal__kod_calistir(
             komut=portal.komutlar.FATURA_OLUSTUR, jp=payload
         )
         response_text = str(response.get("data", "")).strip()
-        success_markers = (
-            "başarıyla oluşturulmuştur",
-            "basariyla olusturulmustur",
-            "başarıyla oluşturulmu",
-            "basariyla olusturulmu",
-        )
-        if any(m in response_text.casefold() for m in success_markers):
+        debug_gib_draft_attempt(1, payload, response_text)
+        if any(marker in response_text.casefold() for marker in success_markers):
+            gib_ettn = resolve_created_gib_ettn(
+                portal=portal,
+                musteri_adi=musteri_adi,
+                musteri_tc=musteri_tc,
+                islem_tarihi=islem_tarihi,
+            )
             return (
                 "Taslak Oluşturuldu",
                 "GİB Portalında taslak fatura başarıyla oluşturuldu.",
-                str(payload.get("faturaUuid") or "").strip() or None,
+                gib_ettn,
             )
+
         if response_text:
             return "GİB Hatası", response_text, None
         return "GİB Hatası", "GİB Portalı taslak oluşturma isteğini tamamlamadı.", None
@@ -1555,6 +2054,13 @@ class GibSyncIn(BaseModel):
     gib_sifre: str = ""
 
 
+class GibDateCompareIn(BaseModel):
+    baslangic_tarihi: str
+    bitis_tarihi: str
+    gib_kullanici: str = ""
+    gib_sifre: str = ""
+
+
 class DeleteIn(BaseModel):
     ids: list[int]
 
@@ -1755,14 +2261,9 @@ def create_manual_transaction(data: ManualTransactionIn):
         archive_key = None
         archive_label = None
 
-    gib_durumu, gib_mesaji, gib_ettn = try_create_gib_draft(
-        gib_kullanici=data.gib_kullanici,
-        gib_sifre=data.gib_sifre,
-        musteri_adi=data.musteri_adi,
-        musteri_tc=tc,
-        islem_tarihi=islem_tarihi,
-        toplam_fatura=data.toplam_fatura,
-    )
+    gib_durumu = "Kaydedildi"
+    gib_mesaji = "Manuel fatura panele kaydedildi. GIB'e gonderilmedi."
+    gib_ettn = None
     record = {
         "İşlem Tarihi": islem_tarihi.isoformat(),
         "Müşteri Adı": data.musteri_adi.strip(),
@@ -1803,6 +2304,29 @@ def sync_gib_statuses_endpoint(data: GibSyncIn):
     if not result.get("ok"):
         status_code = 400 if result.get("status") in {"Kimlik Bekleniyor", "Kütüphane Eksik"} else 502
         raise HTTPException(status_code, result.get("message", "Senkronizasyon başarısız."))
+    return result
+
+
+@app.post("/api/gib/date-discrepancies")
+def gib_date_discrepancies_endpoint(data: GibDateCompareIn):
+    try:
+        baslangic_tarihi = date.fromisoformat(data.baslangic_tarihi)
+        bitis_tarihi = date.fromisoformat(data.bitis_tarihi)
+    except ValueError:
+        raise HTTPException(400, "Geçersiz tarih formatı.")
+
+    if baslangic_tarihi > bitis_tarihi:
+        raise HTTPException(400, "Başlangıç tarihi bitiş tarihinden büyük olamaz.")
+
+    result = try_compare_gib_records_by_date(
+        gib_kullanici=data.gib_kullanici,
+        gib_sifre=data.gib_sifre,
+        baslangic_tarihi=baslangic_tarihi,
+        bitis_tarihi=bitis_tarihi,
+    )
+    if not result.get("ok"):
+        status_code = 400 if result.get("status") in {"Kimlik Bekleniyor", "Kütüphane Eksik"} else 502
+        raise HTTPException(status_code, result.get("message", "GİB kontrolü başarısız."))
     return result
 
 

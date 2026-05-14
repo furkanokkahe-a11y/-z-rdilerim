@@ -46,6 +46,6 @@ if /I "%PORT_STATUS%"=="BUSY" (
 )
 
 start "Chrome" "%CHROME_EXE%" "%APP_URL%"
-"%PYTHON_EXE%" -m uvicorn gib_fatura_api:app --host 0.0.0.0 --port 8000
+"%PYTHON_EXE%" gib_fatura_api.py
 
 pause

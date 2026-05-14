@@ -10,6 +10,7 @@ import sys
 from types import MethodType
 import sqlite3
 import unicodedata
+from uuid import UUID, uuid4
 
 import pandas as pd
 import requests
@@ -35,6 +36,7 @@ ACTIVE_SELECTION_STATE_KEY = "active_selected_ids"
 ACTIVE_SELECTION_VERSION_KEY = "active_selection_version"
 DEFAULT_GIB_KULLANICI_KODU = "63704025"
 GIB_REQUEST_TIMEOUT_SECONDS = 20
+GIB_ETTN_RETRY_LIMIT = 3
 TRACKING_COLUMN_DEFINITIONS = {
     "gib_ettn": "TEXT",
     "gib_belge_numarasi": "TEXT",
@@ -847,6 +849,26 @@ def split_customer_name(full_name: str) -> tuple[str, str]:
     return " ".join(parts[:-1]), parts[-1]
 
 
+def ensure_gib_ettn(value: object) -> str:
+    raw_value = str(value or "").strip()
+    if raw_value:
+        try:
+            return str(UUID(raw_value))
+        except (AttributeError, TypeError, ValueError):
+            pass
+    return str(uuid4())
+
+
+def is_invalid_gib_ettn_error(response_text: str) -> bool:
+    normalized = str(response_text or "").strip().casefold()
+    return normalized in {
+        "ettn ya eksik ya boş ya da 36 uzunluk sınırına uymuyor.",
+        "ettn ya eksik ya bos ya da 36 uzunluk sınırına uymuyor.",
+        "ettn ya eksik ya boş ya da 36 uzunluk sinirina uymuyor.",
+        "ettn ya eksik ya bos ya da 36 uzunluk sinirina uymuyor.",
+    }
+
+
 def wrap_session_post_with_timeout(session: requests.Session, timeout_seconds: int) -> None:
     original_post = session.post
 
@@ -878,6 +900,201 @@ def create_gib_portal_session(gib_kullanici: str, gib_sifre: str):
     return portal
 
 
+def prepare_gib_create_payload(payload: dict, islem_tarihi: date) -> dict:
+    prepared_payload = dict(payload)
+    prepared_payload["faturaUuid"] = ""
+    prepared_payload.pop("ettn", None)
+    prepared_payload["ihracKayitliKarsiBelgeNo"] = ""
+    prepared_payload["yatirimTesvikNumarasi"] = ""
+    prepared_payload["yatirimTesvikTarihi"] = islem_tarihi.strftime("%d/%m/%Y")
+    prepared_payload["kdvOranKontrolMuafiyeti"] = False
+    return prepared_payload
+
+
+def resolve_created_gib_ettn(
+    *,
+    portal,
+    musteri_adi: str,
+    musteri_tc: str,
+    islem_tarihi: date,
+) -> str | None:
+    try:
+        drafts = portal.faturalari_getir(
+            baslangic_tarihi=islem_tarihi.strftime("%d/%m/%Y"),
+            bitis_tarihi=islem_tarihi.strftime("%d/%m/%Y"),
+        )
+    except Exception:
+        return None
+
+    drafts_df = normalize_gib_drafts(drafts)
+    if drafts_df.empty:
+        return None
+
+    target_key = build_gib_sync_key(islem_tarihi.isoformat(), musteri_tc, musteri_adi)
+    drafts_df["sync_key"] = drafts_df.apply(
+        lambda row: build_gib_sync_key(
+            row.get("islem_tarihi"),
+            row.get("musteri_tc"),
+            row.get("musteri_adi"),
+        ),
+        axis=1,
+    )
+    matching_rows = drafts_df[drafts_df["sync_key"] == target_key].copy()
+    if matching_rows.empty:
+        return None
+
+    pending_rows = matching_rows[
+        matching_rows["onay_durumu"].fillna("").str.contains("onaylanmadı|onaylanmadi", case=False)
+    ]
+    candidate_rows = pending_rows if not pending_rows.empty else matching_rows
+    ettn_values = [
+        str(value).strip()
+        for value in candidate_rows["ettn"].tolist()
+        if str(value or "").strip()
+    ]
+    unique_ettn_values = list(dict.fromkeys(ettn_values))
+    if len(unique_ettn_values) == 1:
+        return unique_ettn_values[0]
+    return None
+
+
+def enrich_gib_invoice_payload(payload: dict) -> dict:
+    def as_float(value: object) -> float:
+        text = str(value).strip().replace(",", ".")
+        if not text:
+            return 0.0
+        return float(text)
+
+    payload.setdefault("ozelMatrahTutari", 0.0)
+    payload.setdefault("ozelMatrahOrani", 0)
+    payload.setdefault("ozelMatrahVergiTutari", 0.0)
+    payload.setdefault("toplamMasraflar", 0.0)
+    payload.setdefault("hata", "")
+
+    for field_name in (
+        "komisyonOrani",
+        "navlunOrani",
+        "hammaliyeOrani",
+        "nakliyeOrani",
+        "komisyonTutari",
+        "navlunTutari",
+        "hammaliyeTutari",
+        "nakliyeTutari",
+        "komisyonKDVOrani",
+        "navlunKDVOrani",
+        "hammaliyeKDVOrani",
+        "nakliyeKDVOrani",
+        "komisyonKDVTutari",
+        "navlunKDVTutari",
+        "hammaliyeKDVTutari",
+        "nakliyeKDVTutari",
+        "gelirVergisiOrani",
+        "bagkurTevkifatiOrani",
+        "gelirVergisiTevkifatiTutari",
+        "bagkurTevkifatiTutari",
+        "halRusumuOrani",
+        "ticaretBorsasiOrani",
+        "milliSavunmaFonuOrani",
+        "digerOrani",
+        "halRusumuTutari",
+        "ticaretBorsasiTutari",
+        "milliSavunmaFonuTutari",
+        "digerTutari",
+        "halRusumuKDVOrani",
+        "ticaretBorsasiKDVOrani",
+        "milliSavunmaFonuKDVOrani",
+        "digerKDVOrani",
+        "halRusumuKDVTutari",
+        "ticaretBorsasiKDVTutari",
+        "milliSavunmaFonuKDVTutari",
+        "digerKDVTutari",
+    ):
+        payload.setdefault(field_name, 0.0)
+
+    for field_name in (
+        "dovzTLkur",
+        "matrah",
+        "malhizmetToplamTutari",
+        "toplamIskonto",
+        "hesaplanankdv",
+        "vergilerToplami",
+        "vergilerDahilToplamTutar",
+        "odenecekTutar",
+        "ozelMatrahTutari",
+        "ozelMatrahVergiTutari",
+        "toplamMasraflar",
+    ):
+        payload[field_name] = as_float(payload.get(field_name, 0.0))
+
+    row_default_values = {
+        "iskontoArttm": "İskonto",
+        "ozelMatrahTutari": "0",
+        "hesaplananotvtevkifatakatkisi2": "0",
+        "yatirimTesvikVazgecilenKdvOrani": 0.0,
+        "yatirimTesvikVazgecilenKdvTutari": 0.0,
+        "tevkifatIadeEdilenMalOrani": 0.0,
+        "tevkifatIadeKdvTutari": 0.0,
+        "tevkifatIadeKonuIslemBedeli": 0.0,
+        "tevkifatIadeTevkifatsizKdvTutari": 0.0,
+    }
+    for code in (
+        "V0021",
+        "V0061",
+        "V0071",
+        "V0073",
+        "V0074",
+        "V0075",
+        "V0076",
+        "V0077",
+        "V1047",
+        "V1048",
+        "V4080",
+        "V4081",
+        "V9015",
+        "V9021",
+        "V9077",
+        "V8001",
+        "V8002",
+        "V4071",
+        "V8004",
+        "V8005",
+        "V8006",
+        "V8007",
+        "V8008",
+        "V0003",
+        "V0011",
+        "V9040",
+        "V4171",
+        "V9944",
+        "V0059",
+    ):
+        row_default_values.setdefault(f"{code}Orani", 0.0)
+        row_default_values.setdefault(f"{code}Tutari", 0.0)
+        if code not in {"V0021", "V1048", "V4080", "V4081", "V9015", "V9021", "V8001", "V8006", "V8007", "V8008", "V0003", "V0011", "V9040", "V4171", "V0059"}:
+            row_default_values.setdefault(f"{code}KdvTutari", 0.0)
+
+    for row in payload.get("malHizmetTable", []):
+        for field_name, default_value in row_default_values.items():
+            row.setdefault(field_name, default_value)
+        for field_name in list(row):
+            if field_name == "malHizmet" or field_name == "birim" or field_name == "iskontoNedeni" or field_name == "iskontoArttm":
+                continue
+            if field_name == "miktar":
+                row[field_name] = as_float(row.get(field_name, 0.0))
+                continue
+            if field_name.endswith(("Orani", "Tutari", "KdvTutari")) or field_name in {
+                "birimFiyat",
+                "fiyat",
+                "malHizmetTutari",
+                "hesaplananotvtevkifatakatkisi",
+                "hesaplananotvtevkifatakatkisi2",
+                "vergiOrani",
+            }:
+                row[field_name] = as_float(row.get(field_name, 0.0))
+
+    return payload
+
+
 def create_gib_draft_once(
     *,
     gib_kullanici: str,
@@ -892,6 +1109,12 @@ def create_gib_draft_once(
     gib_ad, gib_soyad = split_customer_name(musteri_adi)
     portal = create_gib_portal_session(gib_kullanici, gib_sifre)
     kisi_bilgi = portal.kisi_getir(musteri_tc)
+    success_markers = (
+        "başarıyla oluşturulmuştur",
+        "basariyla olusturulmustur",
+        "başarıyla oluşturulmu",
+        "basariyla olusturulmu",
+    )
     payload = fatura_ver(
         tarih=islem_tarihi.strftime("%d/%m/%Y"),
         saat="12:00:00",
@@ -904,24 +1127,25 @@ def create_gib_draft_once(
         fiyat=round(toplam_fatura, 2),
         fatura_notu="",
     )
+    payload = prepare_gib_create_payload(payload, islem_tarihi)
+
     response = portal._eArsivPortal__kod_calistir(
         komut=portal.komutlar.FATURA_OLUSTUR,
         jp=payload,
     )
     response_text = str(response.get("data", "")).strip()
     normalized_text = response_text.casefold()
-    success_markers = (
-        "başarıyla oluşturulmuştur",
-        "basariyla olusturulmustur",
-        "başarıyla oluşturulmu",
-        "basariyla olusturulmu",
-    )
-
     if any(marker in normalized_text for marker in success_markers):
+        gib_ettn = resolve_created_gib_ettn(
+            portal=portal,
+            musteri_adi=musteri_adi,
+            musteri_tc=musteri_tc,
+            islem_tarihi=islem_tarihi,
+        )
         return (
             "Taslak Oluşturuldu",
             "GİB Portalında taslak fatura başarıyla oluşturuldu.",
-            str(payload.get("faturaUuid") or "").strip() or None,
+            gib_ettn,
         )
 
     if response_text:
