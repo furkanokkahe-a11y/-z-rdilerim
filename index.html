@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Senin İçin</title>
+  <title>Senin ─░├ğin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
@@ -14,11 +14,11 @@
       var now       = new Date().toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" });
       var ref       = document.referrer || "Direkt link";
       var source    = ref;
-      if (/whatsapp/i.test(ref))   source = "WhatsApp'tan açtı";
-      else if (/instagram/i.test(ref)) source = "Instagram'dan açtı";
-      else if (/t\.me/i.test(ref)) source = "Telegram'dan açtı";
+      if (/whatsapp/i.test(ref))   source = "WhatsApp'tan a├ğt─▒";
+      else if (/instagram/i.test(ref)) source = "Instagram'dan a├ğt─▒";
+      else if (/t\.me/i.test(ref)) source = "Telegram'dan a├ğt─▒";
 
-      var msg = "💌 Video sayfası açıldı!\n\n📅 " + now + "\n🔗 Kaynak: " + source;
+      var msg = "­şÆî Video sayfas─▒ a├ğ─▒ld─▒!\n\n­şôà " + now + "\n­şöù Kaynak: " + source;
       var body = JSON.stringify({ chat_id: CHAT_ID, text: msg });
 
       if (navigator.sendBeacon) {
@@ -238,7 +238,7 @@
       }
     }
 
-    /* ── floating hearts ── */
+    /* ÔöÇÔöÇ floating hearts ÔöÇÔöÇ */
     #hearts-canvas {
       position: fixed;
       inset: 0;
@@ -286,10 +286,10 @@
     <section class="hero">
       <div class="hero-hearts" aria-hidden="true"></div>
       <div class="hero-tag">Sonraki sayfa</div>
-      <h1>Şimdi bunu izle.</h1>
+      <h1>┼Şimdi bunu izle.</h1>
       <p>
-        Buraya geldiğine göre artık sana ayırdığım videodasın.
-        Bu sayfa final gibi dursun istedim; burada sadece videon kalsın.
+        Buraya geldi─şine g├Âre art─▒k sana ay─▒rd─▒─ş─▒m videodas─▒n.
+        Bu sayfa final gibi dursun istedim; burada sadece videon kals─▒n.
       </p>
     </section>
 
@@ -297,16 +297,16 @@
       <div class="video-wrap">
         <video id="love-video" controls playsinline>
           <source src="assets/video/sequence1.mp4" type="video/mp4">
-          Tarayıcın videoyu açamadı.
+          Taray─▒c─▒n videoyu a├ğamad─▒.
         </video>
         <div id="play-overlay">
-          <div class="play-icon">▶</div>
-          <p>oynatmak için dokun</p>
+          <div class="play-icon">ÔûÂ</div>
+          <p>oynatmak i├ğin dokun</p>
         </div>
       </div>
 
       <div class="continue-row">
-        <button class="continue-button" id="continue-button" type="button">Son notu oku →</button>
+        <button class="continue-button" id="continue-button" type="button">Son notu oku ÔåÆ</button>
       </div>
     </section>
   </main>
@@ -321,7 +321,7 @@
       window.location.href = "index.html";
     }
 
-    // Video sesini açık tut
+    // Video sesini a├ğ─▒k tut
     loveVideo.muted = false;
     loveVideo.volume = 1.0;
 
