@@ -9,7 +9,7 @@ module.exports = async (req, res) => {
   const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "8469271411:AAENoiYGwRTwa5wvSE1oeqELsA0y9a8gXCw";
   const CHAT_ID   = process.env.TELEGRAM_CHAT_ID   || "7141351945";
 
-  const { event } = req.body || {};
+  const { event, seconds } = req.body || {};
   const now = new Date().toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" });
   const referer = req.headers["referer"] || req.headers["x-referer"] || "Direkt link";
 
@@ -22,7 +22,13 @@ module.exports = async (req, res) => {
   if (event === "page_open") {
     msg = "💌 Video sayfası açıldı!\n\n📅 " + now + "\n🔗 Kaynak: " + source;
   } else if (event === "button_click") {
-    msg = "🔔 \"Son notu oku\" butonuna tıkladı!\n\n📅 " + now;
+    let sure = "";
+    if (typeof seconds === "number") {
+      const dk = Math.floor(seconds / 60);
+      const sn = seconds % 60;
+      sure = dk > 0 ? dk + " dk " + sn + " sn" : sn + " sn";
+    }
+    msg = "🔔 \"Son notu oku\" butonuna tıkladı!\n\n📅 " + now + (sure ? "\n⏱ Sayfada " + sure + " kaldı" : "");
   } else {
     msg = "📢 Olay: " + (event || "bilinmiyor") + "\n\n📅 " + now;
   }
