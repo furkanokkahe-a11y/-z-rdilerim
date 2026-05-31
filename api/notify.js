@@ -6,12 +6,8 @@ module.exports = async (req, res) => {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-  const CHAT_ID   = process.env.TELEGRAM_CHAT_ID;
-
-  if (!BOT_TOKEN || !CHAT_ID) {
-    return res.status(500).json({ error: "Env vars missing" });
-  }
+  const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "8469271411:AAENoiYGwRTwa5wvSE1oeqELsA0y9a8gXCw";
+  const CHAT_ID   = process.env.TELEGRAM_CHAT_ID   || "7141351945";
 
   const { event } = req.body || {};
   const now = new Date().toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" });
